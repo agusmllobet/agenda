@@ -278,8 +278,9 @@
       <div class="hdr-top">
         <div><div class="hdr-title">Mis Cuentas</div><div class="hdr-sub" id="hdr-sub">Cargando…</div></div>
         <div class="hdr-actions">
-          <button class="ico-btn" onclick="toggleSearch()" title="Buscar"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
-          <button class="ico-btn" onclick="abrirNuevoCliente()" title="Nuevo cliente"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>
+          <button class="ico-btn" onclick="toggleSearch()" title="Buscar">🔍</button>
+          <button class="ico-btn" onclick="abrirNuevoCliente()" title="Nuevo cliente">🏢</button>
+          <button class="ico-btn" onclick="abrirIdeas()" title="Ideas para la app">💡</button>
         </div>
       </div>
       <div class="tabs">
@@ -438,6 +439,55 @@
     <div class="sheet-btns">
       <button class="btn-cancel" onclick="cerrarTemaModal()">Cancelar</button>
       <button class="btn-save" onclick="guardarTemaModal()">Crear tema</button>
+    </div>
+  </div>
+</div>
+
+<!-- IDEAS MODAL -->
+<div class="overlay" id="overlay-ideas" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-title">💡 Ideas para la app</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Anotá acá lo que se te ocurra. Cuando quieras, pedime "recopilemos las ideas" y lo implementamos.</div>
+    <div id="ideas-list" style="margin-bottom:14px"></div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="idea-input" placeholder="Nueva idea…" style="flex:1;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);font-family:var(--font);font-size:14px;color:var(--text);outline:none" onkeydown="if(event.key==='Enter')agregarIdea()"/>
+      <button class="btn-save" style="padding:10px 16px;font-size:14px" onclick="agregarIdea()">+ Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT CLIENTE MODAL -->
+<div class="overlay" id="overlay-edit-cliente" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-title">Editar cliente</div>
+    <div class="field"><label>Nombre</label><input type="text" id="edit-nombre" placeholder="Nombre del cliente"/></div>
+    <div class="field"><label>Ícono</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="ec-ico-btn nc-ico-btn active" onclick="setEcIcon(this,'🏢')">🏢</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'🚂')">🚂</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'✈️')">✈️</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'🚛')">🚛</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'💧')">💧</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'⚡')">⚡</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'🛣️')">🛣️</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'🐄')">🐄</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'☁️')">☁️</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'🖥️')">🖥️</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'🔋')">🔋</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'📊')">📊</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'🏭')">🏭</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'🌾')">🌾</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'🏗️')">🏗️</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'💊')">💊</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'🏦')">🏦</button>
+        <button class="ec-ico-btn nc-ico-btn" onclick="setEcIcon(this,'🛒')">🛒</button>
+      </div>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn-cancel" onclick="document.getElementById('overlay-edit-cliente').classList.remove('open')">Cancelar</button>
+      <button class="btn-save" onclick="guardarEdicionCliente()">Guardar</button>
     </div>
   </div>
 </div>
@@ -662,6 +712,7 @@ const SEED_TM=[
 let tareas=[],temas=[],comentarios={},clientes_cfg={...CLIENT_CFG};
 let tab='todo',sortMode='fecha',editId=null,currentCliente=null,temaCollapsed={};
 let newClienteTipo='cliente',newClienteColor='#2563eb',newClienteBg='#eff6ff',newClienteIcon='🏢';
+let editClienteEmoji='🏢';
 let newTemaEstado='abierto',newTemaCliente=null;
 const KEY_CL='agustina_clientes_v1';
 
@@ -996,8 +1047,7 @@ window.abrirCliente=function(nombre){
   av.style.fontSize='20px';
   av.textContent=cfg.emoji||'🏢';
   document.getElementById('d-title').textContent=nombre;
-  const isCustom=!CLIENT_CFG[nombre];
-  document.getElementById('d-sub-edit').style.display=isCustom?'inline-flex':'none';
+  document.getElementById('d-sub-edit').style.display='inline-flex';
   renderDetail(nombre);
 }
 window.volverClientes=function(){
@@ -1150,6 +1200,11 @@ window.confirmarBorrar=async function(id){
 // ── NUEVO CLIENTE ──
 window.abrirNuevoCliente=function(){document.getElementById('overlay-cliente').classList.add('open')}
 window.cerrarClienteModal=function(){document.getElementById('overlay-cliente').classList.remove('open')}
+window.setEcIcon=function(el,emoji){
+  editClienteEmoji=emoji;
+  document.querySelectorAll('.ec-ico-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
 window.setNcIcon=function(el,icon){
   newClienteIcon=icon;
   document.querySelectorAll('.nc-ico-btn').forEach(b=>b.classList.remove('active'));
@@ -1164,25 +1219,78 @@ window.setNcColor=function(el,color,bg){
   document.querySelectorAll('#nc-colors .seg-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
 }
-window.editarNombreCliente=async function(){
+window.editarNombreCliente=function(){
+  const cfg=clientes_cfg[currentCliente]||getCfg(currentCliente);
+  document.getElementById('edit-nombre').value=currentCliente;
+  // set active emoji in picker
+  document.querySelectorAll('.ec-ico-btn').forEach(b=>{
+    b.classList.toggle('active',b.textContent===( cfg.emoji||'🏢'));
+  });
+  editClienteEmoji=cfg.emoji||'🏢';
+  document.getElementById('overlay-edit-cliente').classList.add('open');
+}
+
+window.guardarEdicionCliente=async function(){
   const viejo=currentCliente;
-  const nuevo=prompt('Nuevo nombre:',viejo);
-  if(!nuevo||nuevo===viejo)return;
-  const cfg=clientes_cfg[viejo];
-  // Save new, delete old
+  const nuevo=document.getElementById('edit-nombre').value.trim();
+  if(!nuevo)return;
+  const cfg={...getCfg(viejo),emoji:editClienteEmoji};
+
+  // Save config (always, even for built-in clients)
   await setDoc(doc(db,'clientes',nuevo),{nombre:nuevo,...cfg});
-  try{await deleteDoc(doc(db,'clientes',viejo));}catch(e){}
-  // Update all tareas and temas
-  const batch1=tareas.filter(t=>t.cliente===viejo);
-  for(const t of batch1){t.cliente=nuevo;await setDoc(doc(db,'tareas',t.id),t,{merge:true});}
-  const batch2=temas.filter(t=>t.cliente===viejo);
-  for(const t of batch2){t.cliente=nuevo;await setDoc(doc(db,'temas',t.id),t,{merge:true});}
+
+  if(nuevo!==viejo){
+    // rename: update tareas and temas
+    const bt=tareas.filter(t=>t.cliente===viejo);
+    for(const t of bt){t.cliente=nuevo;await setDoc(doc(db,'tareas',t.id),t,{merge:true});}
+    const btm=temas.filter(t=>t.cliente===viejo);
+    for(const t of btm){t.cliente=nuevo;await setDoc(doc(db,'temas',t.id),t,{merge:true});}
+    try{await deleteDoc(doc(db,'clientes',viejo));}catch(e){}
+    delete clientes_cfg[viejo];
+    currentCliente=nuevo;
+  }
   clientes_cfg[nuevo]=cfg;
-  delete clientes_cfg[viejo];
-  currentCliente=nuevo;
+  document.getElementById('overlay-edit-cliente').classList.remove('open');
   document.getElementById('d-title').textContent=nuevo;
   renderDetail(nuevo);
   render();
+}
+
+// ── IDEAS ──
+let ideas=[];
+const IDEAS_KEY='app_ideas_v1';
+
+async function loadIdeas(){
+  try{const r=await getDocs(collection(db,'ideas'));ideas=r.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.fecha>b.fecha?-1:1);}catch(e){ideas=[];}
+}
+function renderIdeas(){
+  const el=document.getElementById('ideas-list');
+  if(!el)return;
+  if(!ideas.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:8px 0">Sin ideas aún.</div>';return;}
+  el.innerHTML=ideas.map(i=>`<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--border2)">
+    <span style="font-size:13px;flex:1;color:var(--text);line-height:1.4">${i.texto}</span>
+    <button onclick="borrarIdea('${i.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;flex-shrink:0">🗑</button>
+  </div>`).join('');
+}
+window.abrirIdeas=async function(){
+  await loadIdeas();
+  renderIdeas();
+  document.getElementById('overlay-ideas').classList.add('open');
+  setTimeout(()=>document.getElementById('idea-input')?.focus(),300);
+}
+window.agregarIdea=async function(){
+  const txt=document.getElementById('idea-input').value.trim();
+  if(!txt)return;
+  const idea={id:Date.now().toString(),texto:txt,fecha:new Date().toISOString()};
+  await setDoc(doc(db,'ideas',idea.id),idea);
+  ideas.unshift(idea);
+  document.getElementById('idea-input').value='';
+  renderIdeas();
+}
+window.borrarIdea=async function(id){
+  await deleteDoc(doc(db,'ideas',id));
+  ideas=ideas.filter(i=>i.id!==id);
+  renderIdeas();
 }
 
 window.eliminarCliente=async function(nombre){
