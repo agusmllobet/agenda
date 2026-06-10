@@ -876,7 +876,13 @@ function tileIcon(nombre){
 }
 
 function renderClientes(lista){
-  const todos=[...new Set([...tareas.map(t=>t.cliente),...temas.map(t=>t.cliente)].filter(Boolean))];
+  // Include clients from tareas/temas AND from clientes_cfg (custom ones saved in Firebase)
+  const todosSet=new Set([
+    ...tareas.map(t=>t.cliente),
+    ...temas.map(t=>t.cliente),
+    ...Object.keys(clientes_cfg)
+  ].filter(Boolean));
+  const todos=[...todosSet];
   const grupos={Clientes:[],Partners:[],Interno:[]};
   todos.forEach(c=>{
     const cfg=getCfg(c);
