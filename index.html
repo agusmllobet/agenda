@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Agustina" />
+  <meta name="theme-color" content="#0F0F1A" />
+  <title>Mis Cuentas</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:          #0F0F1A;
+      --bg2:         #171725;
+      --bg3:         #1E1E30;
+      --border:      rgba(255,255,255,0.08);
+      --border2:     rgba(255,255,255,0.04);
+      --text:        #F0EEF8;
+      --text2:       #9490B0;
+      --text3:       #5E5A78;
+      --blue:        #6C8EF5;
+      --blue-soft:   rgba(108,142,245,0.12);
+      --pink:        #E57BB2;
+      --pink-soft:   rgba(229,123,178,0.12);
+      --violet:      #A78BFA;
+      --violet-soft: rgba(167,139,250,0.12);
+      --green:       #4ECBA4;
+      --green-soft:  rgba(78,203,164,0.12);
+      --orange:      #F5A623;
+      --orange-soft: rgba(245,166,35,0.12);
+      --red:         #F06B6B;
+      --red-soft:    rgba(240,107,107,0.12);
+      --radius:      12px;
+      --radius-sm:   8px;
+      --font:        'Inter', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); }
+    body { display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px 12px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border2);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .topbar-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+    .topbar-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+    .topbar-actions { display: flex; gap: 8px; }
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 50%; border: none;
+      background: var(--bg3); color: var(--text2); font-size: 16px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .icon-btn:hover { background: var(--border); color: var(--text); }
+
+    /* ── TOGGLE ── */
+    .toggle-wrap { padding: 10px 16px; flex-shrink: 0; }
+    .toggle {
+      display: flex; background: var(--bg3); border-radius: var(--radius);
+      padding: 3px; gap: 2px;
+    }
+    .toggle-btn {
+      flex: 1; padding: 8px 0; border: none; background: transparent;
+      color: var(--text2); font-size: 13px; font-weight: 500;
+      border-radius: 9px; cursor: pointer; transition: all 0.15s;
+      font-family: var(--font);
+    }
+    .toggle-btn.active {
+      background: linear-gradient(135deg, var(--blue), var(--violet));
+      color: #fff;
+    }
+
+    /* ── FILTER PILLS ── */
+    .filters {
+      display: flex; gap: 6px; padding: 0 16px 10px;
+      overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
+    }
+    .filters::-webkit-scrollbar { display: none; }
+    .pill {
+      padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border);
+      background: transparent; color: var(--text2); font-size: 12px;
+      font-weight: 500; cursor: pointer; white-space: nowrap;
+      font-family: var(--font); transition: all 0.15s;
+    }
+    .pill.active { border-color: var(--violet); background: var(--violet-soft); color: var(--violet); }
+
+    /* ── SCROLL AREA ── */
+    .scroll { flex: 1; overflow-y: auto; padding: 0 16px 100px; }
+    .scroll::-webkit-scrollbar { width: 0; }
+
+    /* ── SECTION LABEL ── */
+    .section-lbl {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text3);
+      padding: 14px 0 6px;
+    }
+
+    /* ── TASK CARD ── */
+    .task-card {
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: var(--radius); padding: 13px 14px;
+      margin-bottom: 8px; display: flex; gap: 11px; align-items: flex-start;
+      transition: border-color 0.15s;
+    }
+    .task-card:hover { border-color: var(--border); }
+    .task-card.done { opacity: 0.4; }
+    .task-card.done .task-title { text-decoration: line-through; }
+
+    .check {
+      width: 20px; height: 20px; min-width: 20px; border-radius: 50%;
+      border: 1.5px solid var(--border); background: transparent;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      margin-top: 1px; transition: all 0.15s;
+    }
+    .check.done { background: var(--green); border-color: var(--green); }
+    .check.done::after { content: '✓'; font-size: 11px; color: #0F0F1A; font-weight: 700; }
+
+    .task-body { flex: 1; min-width: 0; }
+    .task-title { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.35; margin-bottom: 6px; }
+    .task-chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+
+    .chip {
+      font-size: 11px; font-weight: 500; padding: 3px 9px;
+      border-radius: 20px; display: inline-block;
+    }
+    .chip-llamada  { background: var(--blue-soft);   color: var(--blue);   }
+    .chip-mail     { background: var(--violet-soft);  color: var(--violet); }
+    .chip-licit    { background: var(--orange-soft);  color: var(--orange); }
+    .chip-pres     { background: var(--green-soft);   color: var(--green);  }
+    .chip-reunion  { background: var(--pink-soft);    color: var(--pink);   }
+    .chip-otro     { background: rgba(255,255,255,0.05); color: var(--text2); }
+    .chip-bloq     { background: var(--red-soft);     color: var(--red);    }
+
+    .chip-cliente  { background: rgba(255,255,255,0.05); color: var(--text2); }
+    .chip-date     { color: var(--text3); font-size: 11px; font-weight: 400; }
+    .chip-date.hoy    { color: var(--orange); font-weight: 600; }
+    .chip-date.vencido{ color: var(--red);    font-weight: 600; }
+
+    .task-note { font-size: 12px; color: var(--text2); margin-top: 5px; line-height: 1.4; }
+    .task-blocked { font-size: 11px; color: var(--red); margin-top: 4px; }
+
+    .task-acts { display: flex; gap: 3px; }
+    .tiny-btn {
+      background: transparent; border: none; color: var(--text3);
+      font-size: 14px; cursor: pointer; padding: 3px; border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .tiny-btn:hover { color: var(--text); }
+
+    /* ── CLIENT GROUP ── */
+    .client-group { margin-bottom: 6px; }
+    .client-hdr {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 0 6px; cursor: pointer;
+    }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .client-info { flex: 1; }
+    .client-name { font-size: 14px; font-weight: 600; }
+    .client-meta { font-size: 12px; color: var(--text2); margin-top: 1px; }
+    .chevron { color: var(--text3); font-size: 12px; transition: transform 0.2s; }
+    .chevron.open { transform: rotate(90deg); }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed; bottom: 28px; right: 20px;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--violet));
+      border: none; color: #fff; font-size: 24px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(108,142,245,0.4);
+      transition: transform 0.15s;
+      z-index: 100;
+    }
+    .fab:hover { transform: scale(1.07); }
+
+    /* ── MODAL ── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      z-index: 200; display: flex; align-items: flex-end;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+    .sheet {
+      width: 100%; background: var(--bg2); border-radius: 20px 20px 0 0;
+      padding: 20px 20px 40px; max-height: 90vh; overflow-y: auto;
+      transform: translateY(30px); transition: transform 0.25s;
+    }
+    .overlay.open .sheet { transform: translateY(0); }
+    .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 18px; }
+    .sheet-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+    .field { margin-bottom: 12px; }
+    .field label { font-size: 12px; color: var(--text2); margin-bottom: 5px; display: block; font-weight: 500; }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: 11px 13px; background: var(--bg3);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      color: var(--text); font-size: 14px; font-family: var(--font);
+      outline: none; transition: border-color 0.15s;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--violet); }
+    .field select option { background: var(--bg3); }
+    .field textarea { resize: vertical; min-height: 70px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sheet-actions { display: flex; gap: 10px; margin-top: 6px; }
+    .btn-save {
+      flex: 1; padding: 13px;
+      background: linear-gradient(135deg, var(--blue), var(--violet));
+      border: none; border-radius: var(--radius-sm); color: #fff;
+      font-size: 15px; font-weight: 600; cursor: pointer; font-family: var(--font);
+    }
+    .btn-cancel {
+      padding: 13px 20px; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text2); font-size: 15px;
+      cursor: pointer; font-family: var(--font);
+    }
+
+    /* ── EMPTY ── */
+    .empty { text-align: center; padding: 60px 20px; color: var(--text3); }
+    .empty-icon { font-size: 36px; margin-bottom: 12px; }
+    .empty-txt { font-size: 14px; line-height: 1.5; }
+
+    /* ── SEARCH ── */
+    .search-wrap { padding: 0 16px 10px; flex-shrink: 0; }
+    .search-input {
+      width: 100%; padding: 10px 14px; background: var(--bg3);
+      border: 1px solid var(--border2); border-radius: var(--radius);
+      color: var(--text); font-size: 14px; font-family: var(--font); outline: none;
+    }
+    .search-input::placeholder { color: var(--text3); }
+    .search-input:focus { border-color: var(--violet); }
+
+    /* ── TEMA BADGE ── */
+    .tema-badge {
+      font-size: 10px; padding: 2px 7px; border-radius: 10px;
+      background: rgba(255,255,255,0.05); color: var(--text2);
+      font-weight: 500; border: 1px solid var(--border2);
+    }
+
+    @media (min-width: 600px) {
+      body { align-items: center; }
+      .topbar, .toggle-wrap, .filters, .search-wrap { max-width: 480px; width: 100%; }
+      .scroll { max-width: 480px; width: 100%; }
+      .fab { right: calc(50% - 240px + 20px); }
+      .overlay { justify-content: center; align-items: flex-end; }
+      .sheet { max-width: 480px; border-radius: 20px 20px 0 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-title">Mis Cuentas</div>
+    <div class="topbar-sub" id="topbar-sub">Cargando…</div>
+  </div>
+  <div class="topbar-actions">
+    <button class="icon-btn" onclick="toggleSearch()" title="Buscar">🔍</button>
+  </div>
+</div>
+
+<div class="toggle-wrap">
+  <div class="toggle">
+    <button class="toggle-btn active" id="tv-fecha" onclick="setVista('fecha')">📅 Por fecha</button>
+    <button class="toggle-btn" id="tv-cliente" onclick="setVista('cliente')">🏢 Por cliente</button>
+  </div>
+</div>
+
+<div class="search-wrap" id="search-wrap" style="display:none">
+  <input class="search-input" id="search-input" placeholder="Buscar tarea, cliente, nota…" oninput="render()" />
+</div>
+
+<div class="filters" id="filters-bar">
+  <button class="pill active" onclick="setFiltro('todos',this)">Todos</button>
+  <button class="pill" onclick="setFiltro('llamada',this)">📞 Llamada</button>
+  <button class="pill" onclick="setFiltro('mail',this)">✉️ Mail</button>
+  <button class="pill" onclick="setFiltro('licit',this)">📋 Licitación</button>
+  <button class="pill" onclick="setFiltro('pres',this)">📊 Presentación</button>
+  <button class="pill" onclick="setFiltro('reunion',this)">🤝 Reunión</button>
+  <button class="pill" onclick="setFiltro('otro',this)">📌 Otro</button>
+</div>
+
+<div class="scroll" id="lista"></div>
+
+<button class="fab" onclick="abrirForm()" title="Nueva tarea">＋</button>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="cerrarOverlay(event)">
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-title">Nueva tarea</div>
+    <div class="field">
+      <label>Título *</label>
+      <input type="text" id="f-titulo" placeholder="¿Qué tenés que hacer?" />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Cliente / Área</label>
+        <input type="text" id="f-cliente" placeholder="AySA, BCyL…" list="cl-list" />
+        <datalist id="cl-list"></datalist>
+      </div>
+      <div class="field">
+        <label>Tema (opcional)</label>
+        <input type="text" id="f-tema" placeholder="Ej: AMS, Concur…" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Tipo</label>
+        <select id="f-tipo">
+          <option value="llamada">📞 Llamada</option>
+          <option value="mail">✉️ Mail</option>
+          <option value="licit">📋 Licitación</option>
+          <option value="pres">📊 Presentación</option>
+          <option value="reunion">🤝 Reunión</option>
+          <option value="otro">📌 Otro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="f-fecha" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Bloqueado por</label>
+      <input type="text" id="f-bloqueo" placeholder="Esperando X para poder avanzar…" />
+    </div>
+    <div class="field">
+      <label>Notas</label>
+      <textarea id="f-nota" placeholder="Contexto, detalles…"></textarea>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="cerrarForm()">Cancelar</button>
+      <button class="btn-save" onclick="guardar()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const SEED = [
+  // BCyL
+  { id:'1', cliente:'BCyL', tema:'Licitación AMS', titulo:'Presentar licitación renovación AMS', tipo:'licit', fecha: hoyStr(1), bloqueo:'Esperando número de costing de Hernán Iglesias', nota:'', done:false },
+  { id:'2', cliente:'BCyL', tema:'Licitación AMS', titulo:'Recibir y aprobar costing de Hernán Iglesias', tipo:'otro', fecha: hoyStr(1), bloqueo:'', nota:'Previo a presentar la licitación mañana', done:false },
+  { id:'3', cliente:'BCyL', tema:'Compatibility Packs', titulo:'Pedirle a Dani Forte info de compatibility packs', tipo:'llamada', fecha:'', bloqueo:'', nota:'Una vez que lo tenga, mandárselo a SAP', done:false },
+  { id:'4', cliente:'BCyL', tema:'Migraciones', titulo:'Mandar mail a SAP pidiendo info para escenarios de migración', tipo:'mail', fecha:'', bloqueo:'', nota:'RISE (ERP) + SFSF Payroll (RRHH)', done:false },
+  { id:'5', cliente:'BCyL', tema:'Migraciones', titulo:'Mandar mail a Operaciones para armar costings de proyecto', tipo:'mail', fecha:'', bloqueo:'', nota:'Para los dos escenarios de migración', done:false },
+  { id:'6', cliente:'BCyL', tema:'Migraciones', titulo:'Presentar escenarios de migración a Lucas Carbone', tipo:'pres', fecha:'', bloqueo:'Pendiente mails a SAP y Operaciones', nota:'RISE para ERP y SFSF Payroll para RRHH', done:false },
+  // AySA
+  { id:'10', cliente:'AySA', tema:'Extensión 4 meses', titulo:'Chequear tarifas con Teo y Alba', tipo:'llamada', fecha: todayStr(), bloqueo:'', nota:'Previo a mandar propuesta a Marcelo Molina', done:false },
+  { id:'11', cliente:'AySA', tema:'Extensión 4 meses', titulo:'Mandar propuesta extensión 4 meses a Marcelo Molina', tipo:'mail', fecha: todayStr(), bloqueo:'Confirmar tarifas primero con Teo y Alba', nota:'', done:false },
+  { id:'12', cliente:'AySA', tema:'Marketing Cloud → Migración', titulo:'Reclamarle a Marcelo Molina la segunda reunión (caso de uso)', tipo:'llamada', fecha:'', bloqueo:'', nota:'Demo salió bien, usuario lo aprobó. Marcelo iba a hablar interno para generar la reunión.', done:false },
+  { id:'13', cliente:'AySA', tema:'Marketing Cloud → Migración', titulo:'Hablar con Martín Pairetti (SAP) sobre Engagement Cloud', tipo:'reunion', fecha:'', bloqueo:'', nota:'Alinear precio: no puede superar lo que costaba Marketing Cloud (EOL a fin de año)', done:false },
+  { id:'14', cliente:'AySA', tema:'Migración BO', titulo:'Tema abierto: Migración BO', tipo:'otro', fecha:'', bloqueo:'', nota:'Sin acciones aún. Actualizar cuando haya novedades.', done:false },
+  // PAMI
+  { id:'20', cliente:'PAMI', tema:'DC Latam', titulo:'Chequear con Cano antes de enviar OC DC Latam', tipo:'llamada', fecha:'', bloqueo:'', nota:'OC lista y lista para enviar', done:false },
+  { id:'21', cliente:'PAMI', tema:'Licencias ECC', titulo:'Verificar fecha de devolución de licencias ECC', tipo:'otro', fecha:'2026-09-01', bloqueo:'', nota:'Chequear si se mantiene el 31/12/2026 como fecha de devolución', done:false },
+  // ENARSA
+  { id:'30', cliente:'ENARSA', tema:'Migración S/4HANA', titulo:'Organizar reunión de todos (kick-off)', tipo:'reunion', fecha:'', bloqueo:'', nota:'Ana Carvery es líder del lado de Concentrix', done:false },
+  { id:'31', cliente:'ENARSA', tema:'Migración S/4HANA', titulo:'Resolver facturación del proyecto', tipo:'otro', fecha:'', bloqueo:'', nota:'', done:false },
+  { id:'32', cliente:'ENARSA', tema:'Migración S/4HANA', titulo:'Definir fecha de kick-off', tipo:'reunion', fecha:'', bloqueo:'', nota:'', done:false },
+  { id:'33', cliente:'ENARSA', tema:'AMS', titulo:'Juntarse con Alan: retomar AMS', tipo:'reunion', fecha:'', bloqueo:'', nota:'Ver situación con la gente de DL', done:false },
+  // AUSA
+  { id:'40', cliente:'AUSA', tema:'Redeterminaciones', titulo:'Chequear status redeterminaciones en unos días', tipo:'otro', fecha: hoyStr(4), bloqueo:'', nota:'Ya mandé a pedir las redeterminaciones', done:false },
+  { id:'41', cliente:'AUSA', tema:'Payroll', titulo:'Mandar propuesta actualizada del pibe de Payroll', tipo:'mail', fecha:'', bloqueo:'', nota:'', done:false },
+  // ABSA
+  { id:'50', cliente:'ABSA', tema:'Facturación', titulo:'Reclamar facturas vencidas', tipo:'llamada', fecha:'', bloqueo:'', nota:'', done:false },
+  // TSM
+  { id:'60', cliente:'TSM', tema:'RISE', titulo:'Pedirle a Rubén propuesta técnica y costing de RISE', tipo:'mail', fecha:'', bloqueo:'', nota:'Alan ya envió la propuesta comercial. Falta técnica + costing para enviar al cliente.', done:false },
+  // Daimler
+  { id:'70', cliente:'Daimler', tema:'Almuerzo', titulo:'Organizar almuerzo con Alba, Gonza y Nacho', tipo:'reunion', fecha: hoyStr(8), bloqueo:'', nota:'Antes del 18 de junio', done:false },
+  { id:'71', cliente:'Daimler', tema:'Web Services - Órdenes de Reparación', titulo:'Organizar reunión con Gonza y Dani Forte (req. para pasar OC)', tipo:'reunion', fecha:'', bloqueo:'', nota:'Proyecto en ~1 mes. Gonza pide reunión previa. Coordinar con Gaby Di Salvio.', done:false },
+  { id:'72', cliente:'Daimler', tema:'Migración HCM', titulo:'Reunión de migración HCM', tipo:'reunion', fecha: hoyStr(7), bloqueo:'', nota:'La semana que viene', done:false },
+  { id:'73', cliente:'Daimler', tema:'Portal de Proveedores', titulo:'Seguimiento técnico con Dani Forte', tipo:'otro', fecha:'', bloqueo:'', nota:'Dani Forte lo está viendo técnicamente', done:false },
+  { id:'74', cliente:'Daimler', tema:'BTP', titulo:'Explorar si podemos meter algo en Airba (BTP)', tipo:'otro', fecha:'', bloqueo:'', nota:'', done:false },
+  { id:'75', cliente:'Daimler', tema:'Concur Joule', titulo:'Averiguar bien el tema Concur Joule para activarlo', tipo:'otro', fecha:'', bloqueo:'', nota:'SAP menciona posible BTP chico y gratuito para no impactar BTP de Alemania', done:false },
+  { id:'76', cliente:'Daimler', tema:'Concur', titulo:'Mandar soporte post productivo de Concur', tipo:'mail', fecha:'', bloqueo:'', nota:'', done:false },
+  { id:'77', cliente:'Daimler', tema:'Concur', titulo:'Mandar CR de Concur', tipo:'mail', fecha:'', bloqueo:'', nota:'', done:false },
+  { id:'78', cliente:'Daimler', tema:'Concur', titulo:'Mandar a facturar lo pendiente del proyecto Concur', tipo:'otro', fecha:'', bloqueo:'', nota:'', done:false },
+  { id:'79', cliente:'Daimler', tema:'BRP Payroll', titulo:'Chequear respuesta propuesta BRP Payroll', tipo:'otro', fecha:'', bloqueo:'', nota:'Se mandó con 5% de descuento, igual quedó caro. Esperando respuesta.', done:false },
+  { id:'80', cliente:'Daimler', tema:'Entradas Sapphire', titulo:'Enviarle a Alba cómo se cobran las entradas Sapphire', tipo:'mail', fecha:'', bloqueo:'', nota:'USD 2.299 x 3 entradas. 4 lucas del CR de Concur, el resto del otro CR.', done:false },
+  { id:'81', cliente:'Daimler', tema:'Soporte SAP Concur', titulo:'Chequear status propuesta soporte SAP Concur', tipo:'otro', fecha:'', bloqueo:'', nota:'Propuesta ya enviada a Gaby (cliente)', done:false },
+  { id:'82', cliente:'Daimler', tema:'Digitalización flujo de trabajo materiales', titulo:'Responder a Erik sobre solicitud de cotización', tipo:'mail', fecha:'', bloqueo:'Esperando respuesta de Gonza sobre el SOW', nota:'', done:false },
+  // SAP
+  { id:'90', cliente:'SAP', tema:'Compatibility Packs BCyL', titulo:'Mandar info de compatibility packs a SAP', tipo:'mail', fecha:'', bloqueo:'Esperando que Dani Forte lo pase', nota:'', done:false },
+  // DC Latam
+  { id:'100', cliente:'DC Latam', tema:'Contrato y OC', titulo:'Confirmar recepción de factura mes 1', tipo:'otro', fecha:'', bloqueo:'', nota:'Contrato firmado ✓ · OC mes 1 emitida ✓ · FC pedida, pendiente recibir', done:false },
+  // ArreBeef (prospecto)
+  { id:'110', cliente:'ArreBeef', tema:'Reunión inicial', titulo:'Reunión con ArreBeef (prospecto, lead de Romi)', tipo:'reunion', fecha: todayStr(), bloqueo:'', nota:'Frigorífico líder argentino, +1000 empleados, presencia internacional. Ya tienen SAP implementado (vía Process Technologies).', done:false },
+  // Concentrix interno
+  { id:'120', cliente:'Concentrix', tema:'CSAT', titulo:'Revisar pendientes de encuestas y hacer check con Romi', tipo:'reunion', fecha:'', bloqueo:'', nota:'', done:false },
+  { id:'121', cliente:'Concentrix', tema:'Gastos', titulo:'Seguimiento aprobación reportes de gastos', tipo:'otro', fecha:'', bloqueo:'', nota:'', done:false },
+];
+
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+function hoyStr(offset=0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().split('T')[0];
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let tareas = [];
+let vista = 'fecha';
+let filtro = 'todos';
+let editId = null;
+let searchVisible = false;
+const KEY = 'agustina_v2';
+
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+async function load() {
+  try {
+    const r = await localStorage.getItem(KEY);
+    if (r) { tareas = JSON.parse(r); }
+    else { tareas = SEED.map(t => ({...t})); save(); }
+  } catch { tareas = SEED.map(t => ({...t})); }
+  updateSub(); render(); updateDatalist();
+}
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(tareas)); } catch {}
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const TIPO_LABEL = { llamada:'📞 Llamada', mail:'✉️ Mail', licit:'📋 Licitación', pres:'📊 Presentación', reunion:'🤝 Reunión', otro:'📌 Otro' };
+
+const AVATARS = {
+  BCyL:       ['#1a3a5c','#6C8EF5'],
+  AySA:       ['#1a3050','#4da6ff'],
+  PAMI:       ['#2a1a50','#A78BFA'],
+  AUSA:       ['#1a3530','#4ECBA4'],
+  ABSA:       ['#1a2a50','#7EB8F5'],
+  ASSA:       ['#1a3a50','#5CC8E0'],
+  Cammesa:    ['#3a2a10','#F5A623'],
+  CIMET:      ['#3a1a30','#E57BB2'],
+  Daimler:    ['#1a1a3a','#9090F0'],
+  EANA:       ['#1a3a3a','#4ECBA4'],
+  ENARSA:     ['#3a2a10','#F5C842'],
+  GCBA:       ['#1a3050','#5CC8E0'],
+  T6:         ['#2a1a1a','#F06B6B'],
+  TSM:        ['#1a2a1a','#78C87B'],
+  SAP:        ['#1a2a50','#6C8EF5'],
+  'DC Latam': ['#1a1a3a','#A78BFA'],
+  ArreBeef:   ['#3a1a1a','#F06B6B'],
+  Concentrix: ['#1a3050','#4da6ff'],
+};
+
+function avatarFor(nombre) {
+  const c = AVATARS[nombre] || ['#222','#888'];
+  const initials = nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  return `<div class="avatar" style="background:${c[0]};color:${c[1]}">${initials}</div>`;
+}
+
+function dateLabel(f) {
+  if (!f) return null;
+  const hoy = todayStr();
+  const d = new Date(f+'T12:00:00');
+  const mañana = new Date(); mañana.setDate(mañana.getDate()+1);
+  const mañS = mañana.toISOString().split('T')[0];
+  if (f===hoy) return {txt:'Hoy',cls:'hoy'};
+  if (f===mañS) return {txt:'Mañana',cls:''};
+  if (f<hoy) return {txt: d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}), cls:'vencido'};
+  return {txt: d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}), cls:''};
+}
+
+function updateSub() {
+  const p = tareas.filter(t=>!t.done).length;
+  const h = tareas.filter(t=>!t.done && t.fecha===todayStr()).length;
+  let s = `${p} pendiente${p!==1?'s':''}`;
+  if (h) s += ` · ${h} para hoy`;
+  document.getElementById('topbar-sub').textContent = s;
+}
+
+function updateDatalist() {
+  const cl = [...new Set(tareas.map(t=>t.cliente).filter(Boolean))].sort();
+  document.getElementById('cl-list').innerHTML = cl.map(c=>`<option value="${c}">`).join('');
+}
+
+// ── VIEWS ─────────────────────────────────────────────────────────────────────
+function setVista(v) {
+  vista = v;
+  document.getElementById('tv-fecha').classList.toggle('active', v==='fecha');
+  document.getElementById('tv-cliente').classList.toggle('active', v==='cliente');
+  render();
+}
+
+function setFiltro(f, el) {
+  filtro = f;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function toggleSearch() {
+  searchVisible = !searchVisible;
+  document.getElementById('search-wrap').style.display = searchVisible ? 'block' : 'none';
+  if (searchVisible) document.getElementById('search-input').focus();
+  else { document.getElementById('search-input').value=''; render(); }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  const lista = document.getElementById('lista');
+  const q = (document.getElementById('search-input')?.value||'').toLowerCase();
+
+  let items = tareas.filter(t => {
+    if (filtro !== 'todos' && t.tipo !== filtro) return false;
+    if (q) {
+      const hay = [t.titulo,t.cliente,t.tema,t.nota,t.bloqueo].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  if (!items.length) {
+    lista.innerHTML = `<div class="empty"><div class="empty-icon">✨</div><div class="empty-txt">Sin pendientes.<br>¡Todo al día!</div></div>`;
+    return;
+  }
+
+  if (vista === 'fecha') renderFecha(lista, items);
+  else renderCliente(lista, items);
+}
+
+function cardHTML(t) {
+  const dl = dateLabel(t.fecha);
+  const dateBadge = dl ? `<span class="chip-date ${dl.cls}">${dl.txt}</span>` : '';
+  const clienteBadge = t.cliente ? `<span class="chip chip-cliente">${t.cliente}</span>` : '';
+  const temaBadge = t.tema ? `<span class="tema-badge">${t.tema}</span>` : '';
+  const bloqBadge = t.bloqueo ? `<span class="chip chip-bloq">⚠ Bloqueado</span>` : '';
+  return `
+  <div class="task-card ${t.done?'done':''}" id="tc-${t.id}">
+    <div class="check ${t.done?'done':''}" onclick="toggleDone('${t.id}')"></div>
+    <div class="task-body">
+      <div class="task-title">${t.titulo}</div>
+      <div class="task-chips">
+        <span class="chip chip-${t.tipo}">${TIPO_LABEL[t.tipo]||t.tipo}</span>
+        ${clienteBadge}${temaBadge}${bloqBadge}${dateBadge}
+      </div>
+      ${t.nota ? `<div class="task-note">${t.nota}</div>` : ''}
+      ${t.bloqueo ? `<div class="task-blocked">⚠ ${t.bloqueo}</div>` : ''}
+    </div>
+    <div class="task-acts">
+      <button class="tiny-btn" onclick="editarTarea('${t.id}')" title="Editar">✏️</button>
+      <button class="tiny-btn" onclick="borrar('${t.id}')" title="Eliminar">🗑</button>
+    </div>
+  </div>`;
+}
+
+function renderFecha(lista, items) {
+  const hoy = todayStr();
+  const grupos = { 'Vencidas':[], 'Hoy':[], 'Próximas':[], 'Sin fecha':[] };
+  const porDia = {};
+  items.forEach(t => {
+    if (!t.fecha) { grupos['Sin fecha'].push(t); return; }
+    if (t.fecha < hoy) { grupos['Vencidas'].push(t); return; }
+    if (t.fecha === hoy) { grupos['Hoy'].push(t); return; }
+    if (!porDia[t.fecha]) porDia[t.fecha] = [];
+    porDia[t.fecha].push(t);
+  });
+  let html = '';
+  const seccion = (lbl, arr) => {
+    if (!arr.length) return;
+    html += `<div class="section-lbl">${lbl}</div>`;
+    arr.forEach(t => html += cardHTML(t));
+  };
+  seccion('🔴 Vencidas', grupos['Vencidas']);
+  seccion('🔵 Hoy', grupos['Hoy']);
+  Object.keys(porDia).sort().forEach(f => {
+    const d = new Date(f+'T12:00:00');
+    const lbl = d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+    seccion(lbl, porDia[f]);
+  });
+  seccion('📌 Sin fecha', grupos['Sin fecha']);
+  lista.innerHTML = html;
+}
+
+const collapsed = {};
+function renderCliente(lista, items) {
+  const grupos = {};
+  items.forEach(t => {
+    const k = t.cliente || 'Sin cliente';
+    if (!grupos[k]) grupos[k] = [];
+    grupos[k].push(t);
+  });
+  const orden = Object.keys(grupos).sort((a,b) => a==='Sin cliente'?1:b==='Sin cliente'?-1:a.localeCompare(b));
+  let html = '';
+  orden.forEach(k => {
+    const arr = grupos[k];
+    const pend = arr.filter(t=>!t.done).length;
+    const isOpen = collapsed[k] !== false;
+    html += `<div class="client-group">
+      <div class="client-hdr" onclick="toggleGroup('${k}')">
+        ${avatarFor(k)}
+        <div class="client-info">
+          <div class="client-name">${k}</div>
+          <div class="client-meta">${pend} pendiente${pend!==1?'s':''} · ${arr.length} total</div>
+        </div>
+        <span class="chevron ${isOpen?'open':''}">▶</span>
+      </div>
+      <div id="grp-${k.replace(/\s/g,'_')}" style="display:${isOpen?'block':'none'}">
+        ${arr.map(t=>cardHTML(t)).join('')}
+      </div>
+    </div>`;
+  });
+  lista.innerHTML = html;
+}
+
+function toggleGroup(k) {
+  collapsed[k] = collapsed[k] === false ? true : false;
+  const el = document.getElementById('grp-'+k.replace(/\s/g,'_'));
+  const chev = el?.previousElementSibling?.querySelector('.chevron');
+  if (el) el.style.display = collapsed[k] === false ? 'none' : 'block';
+  if (chev) chev.classList.toggle('open', collapsed[k] !== false);
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function toggleDone(id) {
+  const t = tareas.find(t=>t.id===id);
+  if (t) { t.done=!t.done; save(); updateSub(); render(); }
+}
+
+function borrar(id) {
+  if (!confirm('¿Eliminar esta tarea?')) return;
+  tareas = tareas.filter(t=>t.id!==id);
+  save(); updateSub(); render(); updateDatalist();
+}
+
+function editarTarea(id) {
+  const t = tareas.find(t=>t.id===id);
+  if (!t) return;
+  editId = id;
+  document.getElementById('f-titulo').value = t.titulo;
+  document.getElementById('f-cliente').value = t.cliente||'';
+  document.getElementById('f-tema').value = t.tema||'';
+  document.getElementById('f-tipo').value = t.tipo;
+  document.getElementById('f-fecha').value = t.fecha||'';
+  document.getElementById('f-bloqueo').value = t.bloqueo||'';
+  document.getElementById('f-nota').value = t.nota||'';
+  document.getElementById('sheet-title').textContent = 'Editar tarea';
+  document.getElementById('overlay').classList.add('open');
+}
+
+function abrirForm() {
+  editId = null;
+  document.getElementById('f-titulo').value = '';
+  document.getElementById('f-cliente').value = '';
+  document.getElementById('f-tema').value = '';
+  document.getElementById('f-tipo').value = 'mail';
+  document.getElementById('f-fecha').value = todayStr();
+  document.getElementById('f-bloqueo').value = '';
+  document.getElementById('f-nota').value = '';
+  document.getElementById('sheet-title').textContent = 'Nueva tarea';
+  document.getElementById('overlay').classList.add('open');
+}
+
+function cerrarForm() { document.getElementById('overlay').classList.remove('open'); }
+
+function cerrarOverlay(e) {
+  if (e.target === document.getElementById('overlay')) cerrarForm();
+}
+
+function guardar() {
+  const titulo = document.getElementById('f-titulo').value.trim();
+  if (!titulo) { document.getElementById('f-titulo').focus(); return; }
+  const t = {
+    id: editId || Date.now().toString(),
+    titulo,
+    cliente: document.getElementById('f-cliente').value.trim(),
+    tema: document.getElementById('f-tema').value.trim(),
+    tipo: document.getElementById('f-tipo').value,
+    fecha: document.getElementById('f-fecha').value,
+    bloqueo: document.getElementById('f-bloqueo').value.trim(),
+    nota: document.getElementById('f-nota').value.trim(),
+    done: false,
+  };
+  if (editId) {
+    const i = tareas.findIndex(x=>x.id===editId);
+    if (i!==-1) { t.done=tareas[i].done; tareas[i]=t; }
+  } else {
+    tareas.unshift(t);
+  }
+  save(); cerrarForm(); updateSub(); render(); updateDatalist();
+}
+
+load();
+</script>
+</body>
+</html>
