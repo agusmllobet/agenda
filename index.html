@@ -503,14 +503,23 @@
   </div>
 </div>
 
-<script type="module">
-import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getFirestore,collection,doc,getDocs,setDoc,deleteDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script>
+const SUPABASE_URL = "https://vtyahpzfbtgcfubegxad.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0eWFocHpmYnRnY2Z1YmVneGFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI5MTUsImV4cCI6MjA5NjY5ODkxNX0.KT-Eo2Wmxi2vVtuPrXw5Ot2GZTwdl6ER3ULdMCNKdDE";
 
-const FC={apiKey:"AIzaSyBEge_aR9Ba2vBDQ7DblnKmCwMtW9gez1A",authDomain:"agenda-eb30f.firebaseapp.com",projectId:"agenda-eb30f",storageBucket:"agenda-eb30f.firebasestorage.app",messagingSenderId:"342633024003",appId:"1:342633024003:web:6f33fcdb478fc6d3c75c36"};
-const API_URL="https://api-2lest4pc3q-uc.a.run.app";
-const app=initializeApp(FC);
-const db=getFirestore(app);
+async function sb(method, table, body=null, params='') {
+  const url = `${SUPABASE_URL}/rest/v1/${table}${params}`;
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal'
+  };
+  const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : null });
+  if (!res.ok) { const err = await res.text(); throw new Error(err); }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
 
 function todayStr(){return new Date().toISOString().split('T')[0]}
 function daysFromNow(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0]}
@@ -732,45 +741,48 @@ window.setEcColor=function(el,color,bg){
   el.classList.add('active');
 }
 let newTemaEstado='abierto',newTemaCliente=null;
-const KEY_CL='agustina_clientes_v1';
 
-async function seedIfEmpty(){
-  const snap=await getDocs(collection(db,'tareas'));
-  if(snap.empty){
-    for(const t of SEED_T) await setDoc(doc(db,'tareas',t.id),t);
-    for(const t of SEED_TM) await setDoc(doc(db,'temas',t.id),t);
-  }
-  // load custom clients
-  try{const cc=localStorage.getItem(KEY_CL);if(cc)clientes_cfg={...CLIENT_CFG,...JSON.parse(cc)}}catch{}
-}
 
 async function loadAll(){
   document.getElementById('lista').innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div class="empty-txt">Cargando…</div></div>';
-  await seedIfEmpty();
-  const[ts,tms,cs,cls]=await Promise.all([getDocs(collection(db,'tareas')),getDocs(collection(db,'temas')),getDocs(collection(db,'comentarios')),getDocs(collection(db,'clientes'))]);
-  tareas=ts.docs.map(d=>({...d.data(),id:d.id}));
-  temas=tms.docs.map(d=>({...d.data(),id:d.id}));
-  comentarios={};
-  cs.docs.forEach(d=>{const x=d.data();if(!comentarios[x.temaId])comentarios[x.temaId]=[];comentarios[x.temaId].push({id:d.id,...x})});
-  Object.keys(comentarios).forEach(k=>comentarios[k].sort((a,b)=>b.fecha>a.fecha?1:-1));
-  // Load custom clients
-  cls.docs.forEach(d=>{const x=d.data();if(x.nombre)clientes_cfg[x.nombre]={color:x.color,bg:x.bg,emoji:x.emoji||x.icon||'🏢',tipo:x.tipo||'cliente'}});
-  updateCounts();render();updateDatalists();
-  // initialize toolbar visibility for default tab (todo)
+  try {
+    const [ts, tms, cs, cls] = await Promise.all([
+      sb('GET','tareas','',`?select=*&order=created_at.asc`),
+      sb('GET','temas','',`?select=*`),
+      sb('GET','comentarios','',`?select=*&order=fecha.desc`),
+      sb('GET','clientes','',`?select=*`),
+    ]);
+    tareas = ts.map(t=>({...t, done:!!t.done, importante:!!t.importante}));
+    temas  = tms;
+    comentarios = {};
+    cs.forEach(c=>{
+      const key = c.tema_id;
+      if(!comentarios[key]) comentarios[key]=[];
+      comentarios[key].push({id:c.id, temaId:c.tema_id, texto:c.texto, fecha:c.fecha});
+    });
+    cls.forEach(c=>{if(c.nombre) clientes_cfg[c.nombre]={color:c.color,bg:c.bg,emoji:c.emoji||'🏢',tipo:c.tipo||'cliente'}});
+  } catch(e) { console.error('Error cargando datos:', e); }
+  updateCounts(); render(); updateDatalists();
   document.getElementById('toolbar-todo').style.display='flex';
   document.getElementById('filter-bar').style.display='flex';
   document.querySelector('.sort-toggle').style.display='flex';
 }
 
 async function saveTarea(t){
-  await setDoc(doc(db,'tareas',t.id),t);
-  const i=tareas.findIndex(x=>x.id===t.id);
-  if(i!==-1)tareas[i]=t;else tareas.unshift(t);
+  const exists = tareas.find(x=>x.id===t.id);
+  if(exists){
+    await sb('PATCH','tareas',t,`?id=eq.${t.id}`);
+    const i=tareas.findIndex(x=>x.id===t.id);
+    if(i!==-1)tareas[i]=t;
+  } else {
+    await sb('POST','tareas',t);
+    tareas.unshift(t);
+  }
   updateCounts();render();updateDatalists();
   if(currentCliente)renderDetail(currentCliente);
 }
 async function deleteTarea(id){
-  await deleteDoc(doc(db,'tareas',id));
+  await sb('DELETE','tareas',null,`?id=eq.${id}`);
   tareas=tareas.filter(t=>t.id!==id);
   updateCounts();render();updateDatalists();
   if(currentCliente)renderDetail(currentCliente);
@@ -778,24 +790,26 @@ async function deleteTarea(id){
 window.toggleImportante=async function(id){
   const t=tareas.find(t=>t.id===id);if(!t)return;
   t.importante=!t.importante;
-  await setDoc(doc(db,'tareas',id),{importante:t.importante},{merge:true});
+  await sb('PATCH','tareas',{importante:t.importante},`?id=eq.${id}`);
   updateCounts();render();
   if(currentCliente)renderDetail(currentCliente);
 }
 window.toggleDone=async function(id){
   const t=tareas.find(t=>t.id===id);if(!t)return;
   t.done=!t.done;
-  await setDoc(doc(db,'tareas',id),t,{merge:true});
+  await sb('PATCH','tareas',{done:t.done},`?id=eq.${id}`);
   updateCounts();render();
   if(currentCliente)renderDetail(currentCliente);
 }
 async function saveTema(t){
-  await setDoc(doc(db,'temas',t.id),t);
+  const exists=temas.find(x=>x.id===t.id);
+  if(exists){await sb('PATCH','temas',t,`?id=eq.${t.id}`);}
+  else{await sb('POST','temas',t);}
   const i=temas.findIndex(x=>x.id===t.id);
   if(i!==-1)temas[i]=t;else temas.push(t);
 }
 window.cambiarEstadoTema=async function(id,estado){
-  await setDoc(doc(db,'temas',id),{estado},{merge:true});
+  await sb('PATCH','temas',{estado},`?id=eq.${id}`);
   const t=temas.find(t=>t.id===id);if(t)t.estado=estado;
   renderDetail(currentCliente);
 }
@@ -804,10 +818,10 @@ window.addComment=async function(temaId,texto){
   const id=Date.now().toString();
   const now=new Date();
   const fecha=now.toISOString().split('T')[0]+'T'+now.toTimeString().slice(0,5);
-  const entry={temaId,texto:texto.trim(),fecha};
-  await setDoc(doc(db,'comentarios',id),entry);
+  const entry={id,tema_id:temaId,texto:texto.trim(),fecha};
+  await sb('POST','comentarios',entry);
   if(!comentarios[temaId])comentarios[temaId]=[];
-  comentarios[temaId].unshift({id,...entry});
+  comentarios[temaId].unshift({id,temaId,texto:texto.trim(),fecha});
   renderDetail(currentCliente);
 }
 
@@ -1002,10 +1016,10 @@ window.saveAgComment=async function(taskId,texto){
   const now=new Date();
   const fecha=now.toISOString().split('T')[0]+'T'+now.toTimeString().slice(0,5);
   const temaId='ag_'+taskId;
-  const entry={temaId,texto:texto.trim(),fecha};
-  await setDoc(doc(db,'comentarios',id),entry);
+  const entry={id,tema_id:temaId,texto:texto.trim(),fecha};
+  await sb('POST','comentarios',entry);
   if(!comentarios[temaId])comentarios[temaId]=[];
-  comentarios[temaId].unshift({id,...entry});
+  comentarios[temaId].unshift({id,temaId,texto:texto.trim(),fecha});
   render();
 }
 
@@ -1261,15 +1275,15 @@ window.guardarEdicionCliente=async function(){
   const cfg={...getCfg(viejo),emoji:editClienteEmoji,color:editClienteColor,bg:editClienteBg};
 
   // Save config (always, even for built-in clients)
-  await setDoc(doc(db,'clientes',nuevo),{nombre:nuevo,...cfg});
+  try{ await sb('POST','clientes',{nombre:nuevo,...cfg}); }
+  catch(e){ await sb('PATCH','clientes',{nombre:nuevo,...cfg},`?nombre=eq.${encodeURIComponent(nuevo)}`); }
 
   if(nuevo!==viejo){
-    // rename: update tareas and temas
     const bt=tareas.filter(t=>t.cliente===viejo);
-    for(const t of bt){t.cliente=nuevo;await setDoc(doc(db,'tareas',t.id),t,{merge:true});}
+    for(const t of bt){t.cliente=nuevo;await sb('PATCH','tareas',{cliente:nuevo},`?id=eq.${t.id}`);}
     const btm=temas.filter(t=>t.cliente===viejo);
-    for(const t of btm){t.cliente=nuevo;await setDoc(doc(db,'temas',t.id),t,{merge:true});}
-    try{await deleteDoc(doc(db,'clientes',viejo));}catch(e){}
+    for(const t of btm){t.cliente=nuevo;await sb('PATCH','temas',{cliente:nuevo},`?id=eq.${t.id}`);}
+    try{await sb('DELETE','clientes',null,`?nombre=eq.${encodeURIComponent(viejo)}`);}catch(e){}
     delete clientes_cfg[viejo];
     currentCliente=nuevo;
   }
@@ -1285,7 +1299,7 @@ let ideas=[];
 const IDEAS_KEY='app_ideas_v1';
 
 async function loadIdeas(){
-  try{const r=await getDocs(collection(db,'ideas'));ideas=r.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.fecha>b.fecha?-1:1);}catch(e){ideas=[];}
+  try{ideas=await sb('GET','ideas','','?select=*&order=created_at.desc');}catch(e){ideas=[];}
 }
 function renderIdeas(){
   const el=document.getElementById('ideas-list');
@@ -1306,20 +1320,20 @@ window.agregarIdea=async function(){
   const txt=document.getElementById('idea-input').value.trim();
   if(!txt)return;
   const idea={id:Date.now().toString(),texto:txt,fecha:new Date().toISOString()};
-  await setDoc(doc(db,'ideas',idea.id),idea);
+  await sb('POST','ideas',idea);
   ideas.unshift(idea);
   document.getElementById('idea-input').value='';
   renderIdeas();
 }
 window.borrarIdea=async function(id){
-  await deleteDoc(doc(db,'ideas',id));
+  await sb('DELETE','ideas',null,`?id=eq.${id}`);
   ideas=ideas.filter(i=>i.id!==id);
   renderIdeas();
 }
 
 window.eliminarCliente=async function(nombre){
   if(!confirm(`¿Eliminar "${nombre}"? Esto no borra sus tareas.`))return;
-  try{await deleteDoc(doc(db,'clientes',nombre));}catch(e){}
+  try{await sb('DELETE','clientes',null,`?nombre=eq.${encodeURIComponent(nombre)}`);}catch(e){}
   delete clientes_cfg[nombre];
   render();
 }
@@ -1330,9 +1344,12 @@ window.guardarCliente=async function(){
   const cfg={color:newClienteColor,bg:newClienteBg,emoji:newClienteIcon,tipo:newClienteTipo};
   clientes_cfg[nombre]=cfg;
   try{
-    await setDoc(doc(db,'clientes',nombre),{nombre,...cfg});
+    await sb('POST','clientes',{nombre,...cfg});
     console.log('Cliente guardado:', nombre);
-  }catch(e){console.error('Error guardando cliente:',e)}
+  }catch(e){
+    try{ await sb('PATCH','clientes',{nombre,...cfg},`?nombre=eq.${encodeURIComponent(nombre)}`); }
+    catch(e2){console.error('Error guardando cliente:',e2)}
+  }
   cerrarClienteModal();
   document.getElementById('nc-nombre').value='';
   render();
