@@ -230,6 +230,30 @@
     .seg-btn{padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;font-family:var(--font);transition:all .15s}
     .seg-btn.active{border-color:var(--blue);background:var(--blue-s);color:var(--blue)}
 
+    /* FILTER PILLS */
+    .filter-bar{display:flex;gap:6px;padding:8px 16px 6px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border)}
+    .filter-bar::-webkit-scrollbar{display:none}
+    .fpill{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;font-family:var(--font);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+    .fpill svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .fpill.active{border-color:var(--fpcolor,var(--blue));background:var(--fpbg,var(--blue-s));color:var(--fpcolor,var(--blue))}
+
+    /* CUSTOM TIPO PICKER */
+    .tipo-wrap{position:relative}
+    .tipo-trigger{width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;font-family:var(--font);outline:none;cursor:pointer;display:flex;align-items:center;gap:8px;transition:border-color .15s,background .15s}
+    .tipo-trigger.open{border-color:var(--blue);background:#fff}
+    .tipo-trigger-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .tipo-trigger-icon svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .tipo-trigger-label{flex:1;text-align:left;font-size:14px}
+    .tipo-trigger-arrow{color:var(--text3);margin-left:auto;font-size:10px}
+    .tipo-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:300;background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);padding:8px;display:none;flex-wrap:wrap;gap:6px}
+    .tipo-dropdown.open{display:flex}
+    .tipo-opt{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:var(--r);border:1.5px solid transparent;background:var(--bg);cursor:pointer;flex:1;min-width:68px;max-width:80px;transition:all .15s}
+    .tipo-opt:hover{border-color:var(--tc,var(--blue));background:var(--tb,var(--blue-s))}
+    .tipo-opt.sel{border-color:var(--tc,var(--blue));background:var(--tb,var(--blue-s))}
+    .tipo-opt-icon{width:32px;height:32px;border-radius:8px;background:var(--tb,var(--blue-s));display:flex;align-items:center;justify-content:center}
+    .tipo-opt-icon svg{width:16px;height:16px;stroke:var(--tc,var(--blue));fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .tipo-opt-lbl{font-size:10px;font-weight:600;color:var(--text2);text-align:center;line-height:1.2}
+
     /* EMPTY */
     .empty{text-align:center;padding:60px 20px;color:var(--text3)}
     .empty svg{width:40px;height:40px;stroke:var(--text3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin:0 auto 12px;display:block}
@@ -266,6 +290,17 @@
         <button class="sort-btn" id="sort-cliente" onclick="setSort('cliente')">Cliente</button>
       </div>
     </div>
+    <div class="filter-bar" id="filter-bar">
+      <button class="fpill active" style="--fpcolor:var(--blue);--fpbg:var(--blue-s)" onclick="setFiltro('todos',this)">Todos</button>
+      <button class="fpill" style="--fpcolor:var(--blue);--fpbg:var(--blue-s)" onclick="setFiltro('llamada',this)"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.08 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/></svg>Llamada</button>
+      <button class="fpill" style="--fpcolor:var(--violet);--fpbg:var(--violet-s)" onclick="setFiltro('mail',this)"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Mail</button>
+      <button class="fpill" style="--fpcolor:var(--orange);--fpbg:var(--orange-s)" onclick="setFiltro('licit',this)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Licitación</button>
+      <button class="fpill" style="--fpcolor:var(--teal);--fpbg:var(--teal-s)" onclick="setFiltro('pres',this)"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Presentación</button>
+      <button class="fpill" style="--fpcolor:var(--pink);--fpbg:var(--pink-s)" onclick="setFiltro('reunion',this)"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Reunión</button>
+      <button class="fpill" style="--fpcolor:var(--green);--fpbg:var(--green-s)" onclick="setFiltro('costing',this)"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Costing</button>
+      <button class="fpill" style="--fpcolor:var(--purple);--fpbg:var(--purple-s)" onclick="setFiltro('propuesta',this)"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Propuesta</button>
+      <button class="fpill" style="--fpcolor:var(--text2);--fpbg:var(--bg)" onclick="setFiltro('otro',this)"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Otro</button>
+    </div>
     <div class="scroll" id="lista"></div>
   </div>
 
@@ -293,16 +328,24 @@
     </div>
     <div class="frow">
       <div class="field"><label>Tipo</label>
-        <select id="f-tipo">
-          <option value="llamada">Llamada</option>
-          <option value="mail">Mail</option>
-          <option value="licit">Licitación</option>
-          <option value="pres">Presentación</option>
-          <option value="reunion">Reunión</option>
-          <option value="costing">Costing</option>
-          <option value="propuesta">Propuesta</option>
-          <option value="otro">Otro</option>
-        </select>
+        <div class="tipo-wrap">
+          <div class="tipo-trigger" id="tipo-trigger" onclick="toggleTipoPicker()" tabindex="0">
+            <div class="tipo-trigger-icon" id="tipo-trigger-icon" style="background:var(--blue-s)"><svg viewBox="0 0 24 24" style="stroke:var(--blue)"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+            <span class="tipo-trigger-label" id="tipo-trigger-label">Mail</span>
+            <span class="tipo-trigger-arrow">▼</span>
+          </div>
+          <input type="hidden" id="f-tipo" value="mail"/>
+          <div class="tipo-dropdown" id="tipo-dropdown">
+            <div class="tipo-opt" style="--tc:var(--blue);--tb:var(--blue-s)" onclick="selectTipo('llamada')" data-tipo="llamada"><div class="tipo-opt-icon"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.08 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/></svg></div><span class="tipo-opt-lbl">Llamada</span></div>
+            <div class="tipo-opt sel" style="--tc:var(--violet);--tb:var(--violet-s)" onclick="selectTipo('mail')" data-tipo="mail"><div class="tipo-opt-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><span class="tipo-opt-lbl">Mail</span></div>
+            <div class="tipo-opt" style="--tc:var(--orange);--tb:var(--orange-s)" onclick="selectTipo('licit')" data-tipo="licit"><div class="tipo-opt-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><span class="tipo-opt-lbl">Licitación</span></div>
+            <div class="tipo-opt" style="--tc:var(--teal);--tb:var(--teal-s)" onclick="selectTipo('pres')" data-tipo="pres"><div class="tipo-opt-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><span class="tipo-opt-lbl">Presentación</span></div>
+            <div class="tipo-opt" style="--tc:var(--pink);--tb:var(--pink-s)" onclick="selectTipo('reunion')" data-tipo="reunion"><div class="tipo-opt-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div><span class="tipo-opt-lbl">Reunión</span></div>
+            <div class="tipo-opt" style="--tc:var(--green);--tb:var(--green-s)" onclick="selectTipo('costing')" data-tipo="costing"><div class="tipo-opt-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><span class="tipo-opt-lbl">Costing</span></div>
+            <div class="tipo-opt" style="--tc:var(--purple);--tb:var(--purple-s)" onclick="selectTipo('propuesta')" data-tipo="propuesta"><div class="tipo-opt-icon"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><span class="tipo-opt-lbl">Propuesta</span></div>
+            <div class="tipo-opt" style="--tc:var(--text2);--tb:var(--bg)" onclick="selectTipo('otro')" data-tipo="otro"><div class="tipo-opt-icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="tipo-opt-lbl">Otro</span></div>
+          </div>
+        </div>
       </div>
       <div class="field"><label>Fecha</label><input type="date" id="f-fecha"/></div>
     </div>
@@ -375,7 +418,58 @@ const db=getFirestore(app);
 function todayStr(){return new Date().toISOString().split('T')[0]}
 function daysFromNow(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0]}
 
-// ── SVG ICONS ──
+// ── LOGOS ──
+const LOGOS={
+  BCyL:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Belgrano_Cargas_logo.svg/200px-Belgrano_Cargas_logo.svg.png',
+  SAP:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/SAP_2011_logo.svg/200px-SAP_2011_logo.svg.png',
+};
+
+// ── FILTRO ──
+let filtroTipo='todos';
+window.setFiltro=function(f,el){
+  filtroTipo=f;
+  document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+// ── TIPO PICKER ──
+const TIPO_CFG={
+  llamada:{label:'Llamada',  color:'var(--blue)',   bg:'var(--blue-s)',   icon:'<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.08 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/>'},
+  mail:    {label:'Mail',    color:'var(--violet)', bg:'var(--violet-s)', icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>'},
+  licit:   {label:'Licitación',color:'var(--orange)',bg:'var(--orange-s)',icon:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>'},
+  pres:    {label:'Presentación',color:'var(--teal)',bg:'var(--teal-s)',  icon:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>'},
+  reunion: {label:'Reunión',  color:'var(--pink)',   bg:'var(--pink-s)',   icon:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>'},
+  costing: {label:'Costing',  color:'var(--green)',  bg:'var(--green-s)',  icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>'},
+  propuesta:{label:'Propuesta',color:'var(--purple)', bg:'var(--purple-s)',icon:'<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>'},
+  otro:    {label:'Otro',     color:'var(--text2)',  bg:'var(--bg)',       icon:'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>'},
+};
+
+window.toggleTipoPicker=function(){
+  const dd=document.getElementById('tipo-dropdown');
+  const tr=document.getElementById('tipo-trigger');
+  dd.classList.toggle('open');
+  tr.classList.toggle('open');
+}
+window.selectTipo=function(tipo){
+  const cfg=TIPO_CFG[tipo]||TIPO_CFG.otro;
+  document.getElementById('f-tipo').value=tipo;
+  document.getElementById('tipo-trigger-label').textContent=cfg.label;
+  const icon=document.getElementById('tipo-trigger-icon');
+  icon.style.background=cfg.bg;
+  icon.innerHTML=`<svg viewBox="0 0 24 24" style="stroke:${cfg.color};width:13px;height:13px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">${cfg.icon}</svg>`;
+  document.querySelectorAll('.tipo-opt').forEach(el=>el.classList.toggle('sel',el.dataset.tipo===tipo));
+  document.getElementById('tipo-dropdown').classList.remove('open');
+  document.getElementById('tipo-trigger').classList.remove('open');
+}
+// Close picker on outside click
+document.addEventListener('click',function(e){
+  const wrap=document.querySelector('.tipo-wrap');
+  if(wrap&&!wrap.contains(e.target)){
+    document.getElementById('tipo-dropdown')?.classList.remove('open');
+    document.getElementById('tipo-trigger')?.classList.remove('open');
+  }
+});
 const ICO={
   check:'<polyline points="20 6 9 17 4 12"/>',
   edit:'<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>',
@@ -632,8 +726,9 @@ window.setTab=function(t){
   tab=t;
   ['todo','agenda','clientes'].forEach(id=>document.getElementById('tab-'+id).classList.toggle('active',id===t));
   const tb=document.getElementById('toolbar-todo');
+  const fb=document.getElementById('filter-bar');
   tb.style.display=(t==='todo'||t==='agenda')?'flex':'none';
-  // hide sort in agenda
+  fb.style.display=t==='todo'?'flex':'none';
   document.querySelector('.sort-toggle').style.display=t==='todo'?'flex':'none';
   render();
 }
@@ -654,6 +749,7 @@ function render(){
   const lista=document.getElementById('lista');
   const q=(document.getElementById('search-input')?.value||'').toLowerCase();
   let items=tareas.filter(t=>!q||[t.titulo,t.cliente,t.tema,t.nota,t.bloqueo].join(' ').toLowerCase().includes(q));
+  if(filtroTipo!=='todos'&&tab==='todo')items=items.filter(t=>t.tipo===filtroTipo);
   if(tab==='todo')renderTodo(lista,items);
   else if(tab==='agenda')renderAgenda(lista,items);
   else renderClientes(lista);
@@ -763,7 +859,9 @@ function getCfg(nombre){return clientes_cfg[nombre]||{color:'#2563eb',bg:'#eff6f
 
 function tileIcon(nombre){
   const cfg=getCfg(nombre);
-  return`<div class="tile-icon"><svg viewBox="0 0 24 24" style="stroke:${cfg.color}">${ICO[cfg.icon]||ICO.building}</svg></div>`;
+  const logo=LOGOS[nombre];
+  if(logo)return`<div class="tile-logo" style="background:${cfg.bg}"><img src="${logo}" alt="${nombre}" onerror="this.parentElement.innerHTML='<svg viewBox=\\'0 0 24 24\\' style=\\'stroke:${cfg.color};width:20px;height:20px;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round\\'>${ICO[cfg.icon]||ICO.building}</svg>'"/></div>`;
+  return`<div class="tile-logo" style="background:${cfg.bg}"><svg viewBox="0 0 24 24" style="stroke:${cfg.color};width:20px;height:20px;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round">${ICO[cfg.icon]||ICO.building}</svg></div>`;
 }
 
 function renderClientes(lista){
@@ -894,7 +992,7 @@ function formatFecha(f){
 window.abrirForm=function(){
   editId=null;
   ['f-titulo','f-cliente','f-tema','f-bloqueo','f-nota'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-tipo').value='mail';
+  selectTipo('mail');
   document.getElementById('f-fecha').value=todayStr();
   if(currentCliente)document.getElementById('f-cliente').value=currentCliente;
   document.getElementById('sheet-title').textContent='Nueva tarea';
@@ -906,7 +1004,7 @@ window.editarTarea=function(id){
   document.getElementById('f-titulo').value=t.titulo;
   document.getElementById('f-cliente').value=t.cliente||'';
   document.getElementById('f-tema').value=t.tema||'';
-  document.getElementById('f-tipo').value=t.tipo;
+  selectTipo(t.tipo||'mail');
   document.getElementById('f-fecha').value=t.fecha||'';
   document.getElementById('f-bloqueo').value=t.bloqueo||'';
   document.getElementById('f-nota').value=t.nota||'';
@@ -918,7 +1016,7 @@ window.nuevaTareaEnTema=function(cliente,tema){
   ['f-titulo','f-bloqueo','f-nota'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-cliente').value=cliente;
   document.getElementById('f-tema').value=tema;
-  document.getElementById('f-tipo').value='mail';
+  selectTipo('mail');
   document.getElementById('f-fecha').value=todayStr();
   document.getElementById('sheet-title').textContent='Nueva tarea';
   document.getElementById('overlay').classList.add('open');
