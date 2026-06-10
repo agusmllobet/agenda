@@ -620,9 +620,6 @@ async function addComment(temaId, texto) {
 }
 
 // ── HELPERS ────────────────────────────────────────────────────────────────────
-function todayStr(){return new Date().toISOString().split('T')[0]}
-function daysFromNow(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0]}
-
 const TLBL = {llamada:'📞 Llamada',mail:'✉️ Mail',licit:'📋 Licitación',pres:'📊 Presentación',reunion:'🤝 Reunión',otro:'📌 Otro'};
 
 const TILE_COLORS = {
