@@ -883,7 +883,7 @@ function renderClientes(lista){
     const g=cfg.tipo==='partner'?'Partners':cfg.tipo==='interno'?'Interno':'Clientes';
     grupos[g].push(c);
   });
-  let html='';
+  let html=`<button onclick="abrirNuevoCliente()" style="width:100%;margin-bottom:14px;padding:11px;background:var(--surface);border:1.5px dashed var(--blue);border-radius:var(--r-lg);color:var(--blue);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Agregar cliente / partner / interno</button>`;
   Object.keys(grupos).forEach(g=>{
     const members=grupos[g].sort();
     if(!members.length)return;
@@ -899,11 +899,6 @@ function renderClientes(lista){
         <div class="tile-meta">${tAb} tema${tAb!==1?'s':''} abierto${tAb!==1?'s':''}</div>
       </div>`;
     });
-    html+=`<div class="tile" style="--tc:var(--blue);--tb:var(--blue-s);border-style:dashed;box-shadow:none" onclick="abrirNuevoCliente()">
-      <div class="tile-logo" style="background:var(--blue-s)"><svg viewBox="0 0 24 24" style="stroke:var(--blue);width:22px;height:22px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-      <div class="tile-name" style="color:var(--blue)">Agregar</div>
-      <div class="tile-meta" style="color:var(--blue);opacity:.7">nuevo</div>
-    </div>`;
     html+='</div>';
   });
   if(!html)html='<div class="empty"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><div class="empty-txt">Sin clientes aún.</div></div>';
@@ -1083,8 +1078,10 @@ window.guardarCliente=async function(){
   if(!nombre)return;
   const cfg={color:newClienteColor,bg:newClienteBg,icon:'building',tipo:newClienteTipo};
   clientes_cfg[nombre]=cfg;
-  // Save to Firebase
-  await setDoc(doc(db,'clientes',nombre),{nombre,...cfg});
+  try{
+    await setDoc(doc(db,'clientes',nombre),{nombre,...cfg});
+    console.log('Cliente guardado:', nombre);
+  }catch(e){console.error('Error guardando cliente:',e)}
   cerrarClienteModal();
   document.getElementById('nc-nombre').value='';
   render();
