@@ -490,8 +490,12 @@ const ICO={
   zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
   truck:'<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>',
   building:'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
-  water:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>',
+  water:'<path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>',
   energy:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  road:'<path d="M3 17l3-10h12l3 10"/><line x1="12" y1="7" x2="12" y2="17"/><path d="M6 17h12"/>',
+  cow:'<path d="M8 3c0 0-2 1-2 4v2H4l-1 3h2v2c0 2 2 4 4 4h6c2 0 4-2 4-4v-2h2l-1-3h-2V7c0-3-2-4-2-4"/><circle cx="9" cy="11" r="1"/><circle cx="15" cy="11" r="1"/><path d="M9 15s1 1 3 1 3-1 3-1"/>',
+  cloud:'<path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/>',
+  server:'<rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>',
 };
 
 function svg(paths,extra=''){return`<svg viewBox="0 0 24 24" ${extra}>${paths}</svg>`}
@@ -519,21 +523,23 @@ const CLIENT_CFG={
   BCyL:      {color:'#2563eb',bg:'#eff6ff',icon:'train',   tipo:'cliente'},
   AySA:      {color:'#0891b2',bg:'#ecfeff',icon:'water',   tipo:'cliente'},
   PAMI:      {color:'#7c3aed',bg:'#f5f3ff',icon:'building',tipo:'cliente'},
-  AUSA:      {color:'#059669',bg:'#ecfdf5',icon:'truck',   tipo:'cliente'},
+  AUSA:      {color:'#059669',bg:'#ecfdf5',icon:'road',    tipo:'cliente'},
   ABSA:      {color:'#0284c7',bg:'#e0f2fe',icon:'water',   tipo:'cliente'},
   ASSA:      {color:'#0e7490',bg:'#cffafe',icon:'water',   tipo:'cliente'},
   Cammesa:   {color:'#d97706',bg:'#fffbeb',icon:'zap',     tipo:'cliente'},
-  CIMET:     {color:'#db2777',bg:'#fdf2f8',icon:'zap',     tipo:'cliente'},
+  CIMET:     {color:'#db2777',bg:'#fdf2f8',icon:'server',  tipo:'cliente'},
   Daimler:   {color:'#4f46e5',bg:'#eef2ff',icon:'truck',   tipo:'cliente'},
   EANA:      {color:'#059669',bg:'#ecfdf5',icon:'plane',   tipo:'cliente'},
   ENARSA:    {color:'#b45309',bg:'#fef3c7',icon:'energy',  tipo:'cliente'},
   GCBA:      {color:'#2563eb',bg:'#eff6ff',icon:'building',tipo:'cliente'},
   T6:        {color:'#dc2626',bg:'#fef2f2',icon:'building',tipo:'cliente'},
   TSM:       {color:'#16a34a',bg:'#f0fdf4',icon:'zap',     tipo:'cliente'},
-  SAP:       {color:'#2563eb',bg:'#eff6ff',icon:'building',tipo:'partner'},
-  'DC Latam':{color:'#7c3aed',bg:'#f5f3ff',icon:'building',tipo:'partner'},
-  ArreBeef:  {color:'#dc2626',bg:'#fef2f2',icon:'building',tipo:'cliente'},
+  SAP:       {color:'#2563eb',bg:'#eff6ff',icon:'cloud',   tipo:'partner'},
+  'DC Latam':{color:'#7c3aed',bg:'#f5f3ff',icon:'server',  tipo:'partner'},
+  ArreBeef:  {color:'#dc2626',bg:'#fef2f2',icon:'cow',     tipo:'cliente'},
   Concentrix:{color:'#2563eb',bg:'#eff6ff',icon:'building',tipo:'interno'},
+  ACA:       {color:'#16a34a',bg:'#f0fdf4',icon:'cow',     tipo:'cliente'},
+  IRSA:      {color:'#d97706',bg:'#fffbeb',icon:'building',tipo:'cliente'},
 };
 
 // ── SEED ──
@@ -577,6 +583,8 @@ const SEED_T=[
   {id:'110',cliente:'ArreBeef',   tema:'Prospecto',                            titulo:'Reunión con ArreBeef (lead de Romi)',              tipo:'reunion', fecha:todayStr(),bloqueo:'',nota:'Frigorífico líder, +1000 emp., ya tienen SAP.',done:false,creado:todayStr()},
   {id:'120',cliente:'Concentrix', tema:'CSAT',                                 titulo:'Revisar pendientes encuestas + check con Romi',    tipo:'reunion', fecha:'',bloqueo:'',nota:'',done:false,creado:todayStr()},
   {id:'121',cliente:'Concentrix', tema:'Gastos',                               titulo:'Seguimiento aprobación reportes de gastos',        tipo:'otro',    fecha:'',bloqueo:'',nota:'',done:false,creado:todayStr()},
+  {id:'130',cliente:'ACA',        tema:'HR Connect',                           titulo:'Lograr contacto con el tipo del HR Connect',       tipo:'llamada', fecha:'',bloqueo:'',nota:'',done:false,creado:todayStr()},
+  {id:'131',cliente:'IRSA',       tema:'Contactos',                            titulo:'Contactar contactos de Magui',                     tipo:'llamada', fecha:'',bloqueo:'',nota:'',done:false,creado:todayStr()},
 ];
 const SEED_TM=[
   {id:'t1', cliente:'BCyL',       nombre:'Licitación AMS',                     estado:'encurso'},
@@ -612,6 +620,8 @@ const SEED_TM=[
   {id:'t110',cliente:'ArreBeef',  nombre:'Prospecto',                          estado:'abierto'},
   {id:'t120',cliente:'Concentrix',nombre:'CSAT',                               estado:'abierto'},
   {id:'t121',cliente:'Concentrix',nombre:'Gastos',                             estado:'abierto'},
+  {id:'t130',cliente:'ACA',       nombre:'HR Connect',                         estado:'abierto'},
+  {id:'t131',cliente:'IRSA',      nombre:'Contactos',                          estado:'abierto'},
 ];
 
 // ── STATE ──
