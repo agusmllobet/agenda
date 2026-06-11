@@ -976,7 +976,7 @@ function updateCounts(){
   const p=tareas.filter(t=>!t.done);
   document.getElementById('cnt-todo').textContent=p.length;
   document.getElementById('cnt-agenda').textContent=p.filter(t=>t.fecha&&t.fecha>=hoy).length;
-  const foco=p.filter(t=>t.importante).length;
+  const foco=p.filter(t=>t.importante||t.hoy).length;
   document.getElementById('cnt-foco').textContent=foco||'';
   const h=p.filter(t=>t.fecha===hoy).length;
   let s=`${p.length} pendiente${p.length!==1?'s':''}`;
@@ -1072,19 +1072,38 @@ function cardHTML(t,showCliente=true){
   </div>`;
 }
 
+let focoFiltro='importantes'; // 'importantes' | 'hoy' | 'todos'
+
 function renderFoco(lista,items){
   const importantes=items.filter(t=>t.importante&&!t.done);
-  if(!importantes.length){
-    lista.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><div class="empty-txt">No hay tareas marcadas como importantes.<br>Usá el ícono 👁 en cualquier tarea para agregarla acá.</div></div>`;
+  const hoyTareas=items.filter(t=>t.hoy&&!t.done&&!t.importante);
+  const todas=[...importantes,...hoyTareas];
+
+  // Filter toggle bar
+  let filterBar=`<div style="display:flex;gap:6px;padding:0 0 12px;overflow-x:auto;scrollbar-width:none">
+    <button class="fpill ${focoFiltro==='todos'?'active':''}" style="--fpcolor:var(--violet);--fpbg:var(--violet-s)" onclick="setFocoFiltro('todos')">Todas</button>
+    <button class="fpill ${focoFiltro==='importantes'?'active':''}" style="--fpcolor:var(--blue);--fpbg:var(--blue-s)" onclick="setFocoFiltro('importantes')">👁 Importantes</button>
+    <button class="fpill ${focoFiltro==='hoy'?'active':''}" style="--fpcolor:var(--orange);--fpbg:var(--orange-s)" onclick="setFocoFiltro('hoy')">🕐 Para hoy</button>
+  </div>`;
+
+  let filtered;
+  if(focoFiltro==='importantes') filtered=importantes;
+  else if(focoFiltro==='hoy') filtered=hoyTareas;
+  else filtered=todas;
+
+  if(!filtered.length){
+    lista.innerHTML=filterBar+`<div class="empty"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><div class="empty-txt">${focoFiltro==='hoy'?'No hay tareas marcadas para hoy.':'No hay tareas en foco.'}</div></div>`;
     return;
   }
+
   const grupos={};
-  importantes.forEach(t=>{
+  filtered.forEach(t=>{
     const k=t.cliente||'Sin cliente';
     if(!grupos[k])grupos[k]=[];
     grupos[k].push(t);
   });
-  let html='';
+
+  let html=filterBar;
   Object.keys(grupos).sort().forEach(k=>{
     const cfg=getCfg(k);
     html+=`<div style="display:flex;align-items:center;gap:8px;padding:14px 2px 6px">
@@ -1094,6 +1113,11 @@ function renderFoco(lista,items){
     grupos[k].forEach(t=>html+=cardHTML(t,false));
   });
   lista.innerHTML=html;
+}
+
+window.setFocoFiltro=function(f){
+  focoFiltro=f;
+  render();
 }
 
 function renderTodo(lista,items){
