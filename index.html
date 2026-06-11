@@ -926,7 +926,8 @@ function cardHTML(t,showCliente=true){
   const tmBadge=t.tema?`<span class="chip c-otro">${t.tema}</span>`:'';
   const bloqBadge=t.bloqueo?`<span class="chip c-bloq">${svg(ICO.warn)}Bloqueado</span>`:'';
   const isUrgent=t.fecha&&t.fecha<=todayStr()&&!t.done;
-  return`<div class="card ${t.done?'done':''} ${isUrgent?'urgent':''} ${t.importante&&!t.done?'importante':''}">
+  const isSam=t.propuesto_por==='SAM'&&!t.done;
+  return`<div class="card ${t.done?'done':''} ${isUrgent?'urgent':''} ${t.importante&&!t.done&&!isSam?'importante':''} ${isSam?'sam':''}">
     <div class="check ${t.done?'done':''}" onclick="toggleDone('${t.id}')">${svg(ICO.check)}</div>
     <div class="card-body">
       <div class="card-title">${t.titulo}</div>
