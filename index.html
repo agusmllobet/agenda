@@ -290,15 +290,15 @@
     .pin-error.visible{opacity:1}
 
     /* SAM BANNER */
-    .sam-banner{margin:12px 16px 0;padding:12px 14px;background:linear-gradient(135deg,var(--violet-s),#fdf2f8);border:1px solid rgba(124,58,237,0.15);border-radius:var(--r-lg);display:none;position:relative}
+    .sam-wrapper{margin:10px 16px 0;border-radius:var(--r-lg);overflow:hidden;border:1px solid rgba(37,99,235,0.2)}
+    .sam-banner{padding:12px 14px;background:var(--blue-s);display:none;position:relative}
     .sam-banner.visible{display:block}
-    .sam-banner-title{font-size:11px;font-weight:700;color:var(--violet);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+    .sam-banner-title{font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px}
     .sam-banner-text{font-size:13px;color:var(--text);line-height:1.5}
     .sam-banner-close{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1}
-    .sam-banner-stats{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
-    .sam-stat{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;background:rgba(124,58,237,0.1);color:var(--violet)}
+    .sam-banner-stats{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+    .sam-stat{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;background:rgba(37,99,235,0.12);color:var(--blue)}
     .sam-stat.urgente{background:rgba(220,38,38,0.1);color:var(--red)}
-
     @media(min-width:600px){
       body{background:#eef0f7}
       .shell{box-shadow:0 0 40px rgba(0,0,0,.10)}
@@ -357,13 +357,15 @@
         <button class="tab" id="tab-clientes" onclick="setTab('clientes')">Clientes</button>
       </div>
     </div>
-    <button id="sam-toggle-btn" onclick="toggleSamBanner()" style="display:none;width:calc(100% - 32px);margin:10px 16px 0;padding:10px 14px;background:var(--blue-s);border:1px solid rgba(37,99,235,0.2);border-radius:var(--r-lg);color:var(--blue);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);text-align:left;display:flex;align-items:center;gap:8px">
-      <span>💡</span><span id="sam-toggle-label">Ver resumen del día</span><span style="margin-left:auto;font-size:11px" id="sam-toggle-arrow">▼</span>
-    </button>
-    <div class="sam-banner" id="sam-banner" style="display:none">
-      <div class="sam-banner-title">💡 SAM · Resumen del día</div>
-      <div class="sam-banner-text" id="sam-banner-text">Analizando tu agenda…</div>
-      <div class="sam-banner-stats" id="sam-banner-stats"></div>
+    <div class="sam-wrapper" id="sam-wrapper" style="display:none">
+      <button id="sam-toggle-btn" onclick="toggleSamBanner()" style="width:100%;padding:10px 14px;background:var(--blue-s);border:none;border-bottom:0px solid rgba(37,99,235,0.2);color:var(--blue);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);text-align:left;display:flex;align-items:center;gap:8px">
+        <span>💡</span><span id="sam-toggle-label">Ver resumen del día</span><span style="margin-left:auto;font-size:11px" id="sam-toggle-arrow">▼</span>
+      </button>
+      <div class="sam-banner" id="sam-banner" style="display:none;border-top:1px solid rgba(37,99,235,0.15)">
+        <div class="sam-banner-title">💡 SAM · Resumen del día</div>
+        <div class="sam-banner-text" id="sam-banner-text">Analizando tu agenda…</div>
+        <div class="sam-banner-stats" id="sam-banner-stats"></div>
+      </div>
     </div>
     <div class="toolbar" id="toolbar-todo" style="display:none">
       <input class="search-input" id="search-input" placeholder="Buscar tarea, cliente…" oninput="render()"/>
@@ -869,8 +871,11 @@ window.toggleSamBanner=function(){
   const banner=document.getElementById('sam-banner');
   const arrow=document.getElementById('sam-toggle-arrow');
   const label=document.getElementById('sam-toggle-label');
+  const btn=document.getElementById('sam-toggle-btn');
   const visible=banner.style.display!=='none';
   banner.style.display=visible?'none':'block';
+  btn.style.borderBottomLeftRadius=visible?'calc(var(--r-lg) - 1px)':'0';
+  btn.style.borderBottomRightRadius=visible?'calc(var(--r-lg) - 1px)':'0';
   arrow.textContent=visible?'▼':'▲';
   label.textContent=visible?'Ver resumen del día':'Cerrar resumen';
 }
@@ -897,7 +902,7 @@ async function cargarResumenDia(){
         html+=`<span class="sam-stat">📌 ${stats.total} total</span>`;
         document.getElementById('sam-banner-stats').innerHTML=html;
       }
-      document.getElementById('sam-toggle-btn').style.display='flex';
+      document.getElementById('sam-wrapper').style.display='block';
     }
   }catch(e){console.log('Error cargando resumen:',e);}
 }
@@ -1090,8 +1095,8 @@ let focoFiltro='importantes'; // 'importantes' | 'hoy' | 'todos'
 
 function renderFoco(lista,items){
   const importantes=items.filter(t=>t.importante&&!t.done);
-  const hoyTareas=items.filter(t=>t.hoy&&!t.done&&!t.importante);
-  const todas=[...importantes,...hoyTareas];
+  const hoyTareas=items.filter(t=>t.hoy&&!t.done);
+  const todas=[...new Map([...importantes,...hoyTareas].map(t=>[t.id,t])).values()];
 
   // Filter toggle bar
   let filterBar=`<div style="display:flex;gap:6px;padding:0 0 12px;overflow-x:auto;scrollbar-width:none">
