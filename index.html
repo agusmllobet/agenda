@@ -7,6 +7,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
   <meta name="apple-mobile-web-app-title" content="SAM"/>
   <meta name="theme-color" content="#ffffff"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
   <meta property="og:title" content="SAM"/>
   <meta property="og:image" content="https://agusmllobet.github.io/agenda/favicon.ico"/>
   <meta property="og:description" content="Agenda de clientes y pendientes"/>
@@ -327,7 +330,7 @@
     <button class="pin-btn" onclick="pinPress('7')">7</button>
     <button class="pin-btn" onclick="pinPress('8')">8</button>
     <button class="pin-btn" onclick="pinPress('9')">9</button>
-    <button class="pin-btn" onclick="pinPress('')"></button>
+    <button class="pin-btn" id="faceid-btn" onclick="usarFaceID()" style="font-size:22px">⬡</button>
     <button class="pin-btn" onclick="pinPress('0')">0</button>
     <button class="pin-btn del" onclick="pinDel()">⌫</button>
   </div>
@@ -354,11 +357,13 @@
         <button class="tab" id="tab-clientes" onclick="setTab('clientes')">Clientes</button>
       </div>
     </div>
-    <div class="sam-banner" id="sam-banner">
+    <button id="sam-toggle-btn" onclick="toggleSamBanner()" style="display:none;width:calc(100% - 32px);margin:10px 16px 0;padding:10px 14px;background:var(--blue-s);border:1px solid rgba(37,99,235,0.2);border-radius:var(--r-lg);color:var(--blue);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);text-align:left;display:flex;align-items:center;gap:8px">
+      <span>💡</span><span id="sam-toggle-label">Ver resumen del día</span><span style="margin-left:auto;font-size:11px" id="sam-toggle-arrow">▼</span>
+    </button>
+    <div class="sam-banner" id="sam-banner" style="display:none">
       <div class="sam-banner-title">💡 SAM · Resumen del día</div>
       <div class="sam-banner-text" id="sam-banner-text">Analizando tu agenda…</div>
       <div class="sam-banner-stats" id="sam-banner-stats"></div>
-      <button class="sam-banner-close" onclick="document.getElementById('sam-banner').classList.remove('visible')">×</button>
     </div>
     <div class="toolbar" id="toolbar-todo" style="display:none">
       <input class="search-input" id="search-input" placeholder="Buscar tarea, cliente…" oninput="render()"/>
@@ -377,6 +382,7 @@
       <button class="fpill" style="--fpcolor:var(--green);--fpbg:var(--green-s)" onclick="setFiltro('costing',this)"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Costing</button>
       <button class="fpill" style="--fpcolor:var(--purple);--fpbg:var(--purple-s)" onclick="setFiltro('propuesta',this)"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Propuesta</button>
       <button class="fpill" style="--fpcolor:var(--text2);--fpbg:var(--bg)" onclick="setFiltro('otro',this)"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Otro</button>
+      <button class="fpill" style="--fpcolor:var(--orange);--fpbg:var(--orange-s)" onclick="setFiltroHoy(this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Para hoy</button>
     </div>
     <div class="scroll" id="lista"></div>
   </div>
@@ -599,6 +605,12 @@ const LOGOS={};
 
 // ── FILTRO ──
 let filtroTipo='todos';
+window.setFiltroHoy=function(el){
+  filtroTipo='hoy';
+  document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
 window.setFiltro=function(f,el){
   filtroTipo=f;
   document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('active'));
@@ -646,6 +658,7 @@ document.addEventListener('click',function(e){
 const ICO={
   check:'<polyline points="20 6 9 17 4 12"/>',
   eye:'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  hoyclock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/><path d="M12 21v-2M21 12h-2M12 3V5M3 12h2"/>',
   eyeoff:'<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
   edit:'<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>',
   trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/>',
@@ -822,7 +835,7 @@ async function loadAll(){
       sb('GET','comentarios','',`?select=*&order=fecha.desc`),
       sb('GET','clientes','',`?select=*`),
     ]);
-    tareas = ts.map(t=>({...t, done:!!t.done, importante:!!t.importante}));
+    tareas = ts.map(t=>({...t, done:!!t.done, importante:!!t.importante, hoy:!!t.hoy}));
     temas  = tms;
     comentarios = {};
     cs.forEach(c=>{
@@ -840,12 +853,29 @@ async function loadAll(){
   cargarResumenDia();
 }
 
+window.toggleSamBanner=function(){
+  const banner=document.getElementById('sam-banner');
+  const arrow=document.getElementById('sam-toggle-arrow');
+  const label=document.getElementById('sam-toggle-label');
+  const visible=banner.style.display!=='none';
+  banner.style.display=visible?'none':'block';
+  arrow.textContent=visible?'▼':'▲';
+  label.textContent=visible?'Ver resumen del día':'Cerrar resumen';
+}
+
 async function cargarResumenDia(){
   try{
     const r=await fetch('https://vtyahpzfbtgcfubegxad.supabase.co/functions/v1/resumen-dia');
     const data=await r.json();
     if(data.resumen){
-      document.getElementById('sam-banner-text').textContent=data.resumen;
+      const texto=data.resumen||'';
+      // Format as bullets if has line breaks or sentences
+      const lines=texto.split(/[.!]\s+/).filter(l=>l.trim().length>10);
+      let html=texto;
+      if(lines.length>1){
+        html='<ul style="padding-left:16px;margin:0;display:flex;flex-direction:column;gap:4px">'+lines.map(l=>`<li style="font-size:13px;color:var(--text);line-height:1.4">${l.trim().replace(/^\.+/,'')}</li>`).join('')+'</ul>';
+      }
+      document.getElementById('sam-banner-text').innerHTML=html;
       const stats=data.stats;
       if(stats){
         let html='';
@@ -855,7 +885,7 @@ async function cargarResumenDia(){
         html+=`<span class="sam-stat">📌 ${stats.total} total</span>`;
         document.getElementById('sam-banner-stats').innerHTML=html;
       }
-      document.getElementById('sam-banner').classList.add('visible');
+      document.getElementById('sam-toggle-btn').style.display='flex';
     }
   }catch(e){console.log('Error cargando resumen:',e);}
 }
@@ -884,6 +914,13 @@ window.toggleBloqueo=async function(id){
   t.bloqueo_resuelto=!t.bloqueo_resuelto;
   await sb('PATCH','tareas',{bloqueo_resuelto:t.bloqueo_resuelto},`?id=eq.${id}`);
   render();
+  if(currentCliente)renderDetail(currentCliente);
+}
+window.toggleHoy=async function(id){
+  const t=tareas.find(t=>t.id===id);if(!t)return;
+  t.hoy=!t.hoy;
+  await sb('PATCH','tareas',{hoy:t.hoy},`?id=eq.${id}`);
+  updateCounts();render();
   if(currentCliente)renderDetail(currentCliente);
 }
 window.toggleImportante=async function(id){
@@ -915,6 +952,11 @@ async function saveTema(t){
 window.cambiarEstadoTema=async function(id,estado){
   await sb('PATCH','temas',{estado},`?id=eq.${id}`);
   const t=temas.find(t=>t.id===id);if(t)t.estado=estado;
+  renderDetail(currentCliente);
+}
+window.borrarComentario=async function(id,temaId){
+  await sb('DELETE','comentarios',null,`?id=eq.${id}`);
+  if(comentarios[temaId])comentarios[temaId]=comentarios[temaId].filter(c=>c.id!==id);
   renderDetail(currentCliente);
 }
 window.addComment=async function(temaId,texto){
@@ -994,7 +1036,10 @@ function render(){
   const lista=document.getElementById('lista');
   const q=(document.getElementById('search-input')?.value||'').toLowerCase();
   let items=tareas.filter(t=>!q||[t.titulo,t.cliente,t.tema,t.nota,t.bloqueo].join(' ').toLowerCase().includes(q));
-  if(filtroTipo!=='todos'&&tab==='todo')items=items.filter(t=>t.tipo===filtroTipo);
+  if(tab==='todo'){
+    if(filtroTipo==='hoy') items=items.filter(t=>t.hoy&&!t.done);
+    else if(filtroTipo!=='todos') items=items.filter(t=>t.tipo===filtroTipo);
+  }
   if(tab==='todo')renderTodo(lista,items);
   else if(tab==='agenda')renderAgenda(lista,items);
   else if(tab==='foco')renderFoco(lista,items);
@@ -1013,7 +1058,7 @@ function cardHTML(t,showCliente=true){
     <div class="check ${t.done?'done':''}" onclick="toggleDone('${t.id}')">${svg(ICO.check)}</div>
     <div class="card-body">
       <div class="card-title">${t.titulo}</div>
-      <div class="card-chips">${tipoChip(t.tipo)}${clBadge}${tmBadge}${bloqBadge}${dateBadge}${t.propuesto_por==='SAM'||t.propuesto_por==='sam'?'<span class="chip c-sam">💡 SAM</span>':''}</div>
+      <div class="card-chips">${tipoChip(t.tipo)}${clBadge}${tmBadge}${bloqBadge}${dateBadge}${t.propuesto_por==='SAM'||t.propuesto_por==='sam'?'<span class="chip c-sam">💡 SAM</span>':''}${t.hoy&&!t.done?'<span class="chip c-hoy"><svg viewBox="0 0 24 24" width="11" height="11" style="flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Hoy</span>':''}</div>
       ${t.nota?`<div class="card-note">${t.nota}</div>`:''}
       ${t.bloqueo?`<div class="card-blocked" style="${t.bloqueo_resuelto?'opacity:.5;text-decoration:line-through':''}">
         <button onclick="event.stopPropagation();toggleBloqueo('${t.id}')" style="background:${t.bloqueo_resuelto?'var(--green)':'transparent'};border:1.5px solid ${t.bloqueo_resuelto?'var(--green)':'var(--red)'};border-radius:50%;width:16px;height:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:4px;font-size:9px;color:${t.bloqueo_resuelto?'#fff':'var(--red)'}">${t.bloqueo_resuelto?'✓':''}</button>
@@ -1021,6 +1066,7 @@ function cardHTML(t,showCliente=true){
       </div>`:''}
     </div>
     <div class="card-acts">
+      <button class="tiny" onclick="toggleHoy('${t.id}')" title="Para hoy" style="${t.hoy&&!t.done?'color:var(--orange)':''}"><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/><path d="M12 21v-2M21 12h-2M12 3V5M3 12h2"/></svg></button>
       <button class="tiny ${t.importante?'importante-on':''}" onclick="toggleImportante('${t.id}')" title="Importante" style="${t.importante?'color:var(--blue)':''}">${svg(t.importante?ICO.eye:ICO.eyeoff)}</button>
       ${tinyBtn('edit',`editarTarea('${t.id}')`)}${tinyBtn('trash',`confirmarBorrar('${t.id}')}`)}</div>
   </div>`;
@@ -1232,9 +1278,20 @@ function temaCardHTML(tema,todasTareas){
     <div class="tema-body ${isOpen?'open':''}">
       ${tt.map(t=>taskCardHTML(t)).join('')}
       <div style="margin-top:8px"><button class="tema-btn" onclick="nuevaTareaEnTema('${tema.cliente}','${tema.nombre.replace(/'/g,"\\'")}')">+ Tarea</button></div>
+      <!-- Completed tasks section -->
+      ${tt.filter(t=>t.done).length>0?`
+        <div style="margin-top:10px">
+          <button onclick="toggleCompletadas('${tema.id}')" style="background:none;border:none;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.05em;padding:4px 0">
+            <span id="comp-arrow-${tema.id}">▶</span> Completadas (${tt.filter(t=>t.done).length})
+          </button>
+          <div id="comp-${tema.id}" style="display:none">
+            ${tt.filter(t=>t.done).map(t=>taskCardHTML(t)).join('')}
+          </div>
+        </div>`:''
+      }
       <div class="bit-section">
         <div class="bit-label">Bitácora</div>
-        ${coms.map(c=>`<div class="bit-entry"><div class="bit-dot"></div><div style="flex:1"><div class="bit-text">${c.texto}</div><div class="bit-date">${formatFecha(c.fecha)}</div></div></div>`).join('')}
+        ${coms.map(c=>`<div class="bit-entry"><div class="bit-dot"></div><div style="flex:1"><div class="bit-text">${c.texto}</div><div class="bit-date">${formatFecha(c.fecha)}</div></div><button onclick="borrarComentario('${c.id}','${tema.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 4px;flex-shrink:0">🗑</button></div>`).join('')}
         ${tema.estado!=='cerrado'?`<div class="add-comment"><input class="comment-input" id="ci-${tema.id}" placeholder="Agregar update…" onkeydown="if(event.key==='Enter'){addComment('${tema.id}',this.value).then(()=>this.value='')}"/><button class="comment-btn" onclick="const el=document.getElementById('ci-${tema.id}');addComment('${tema.id}',el.value).then(()=>el.value='')">OK</button></div>`:''}
       </div>
       <div class="tema-actions">
@@ -1257,7 +1314,7 @@ function taskCardHTML(t){
     <div class="check ${t.done?'done':''}" onclick="toggleDone('${t.id}')">${svg(ICO.check)}</div>
     <div class="task-body">
       <div class="task-title">${t.titulo}</div>
-      <div class="task-chips">${tipoChip(t.tipo)}${bloqBadge}${dateBadge}${t.propuesto_por==='SAM'||t.propuesto_por==='sam'?'<span class="chip c-sam">💡 SAM</span>':''}</div>
+      <div class="task-chips">${tipoChip(t.tipo)}${bloqBadge}${dateBadge}${t.propuesto_por==='SAM'||t.propuesto_por==='sam'?'<span class="chip c-sam">💡 SAM</span>':''}${t.hoy&&!t.done?'<span class="chip c-hoy">🕐 Hoy</span>':''}</div>
       ${t.nota?`<div class="task-note">${t.nota}</div>`:''}
       ${t.bloqueo?`<div class="task-blocked" style="${t.bloqueo_resuelto?'opacity:.5;text-decoration:line-through':''}">
         <button onclick="event.stopPropagation();toggleBloqueo('${t.id}')" style="background:${t.bloqueo_resuelto?'var(--green)':'transparent'};border:1.5px solid ${t.bloqueo_resuelto?'var(--green)':'var(--red)'};border-radius:50%;width:16px;height:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:4px;font-size:9px;color:${t.bloqueo_resuelto?'#fff':'var(--red)'}">${t.bloqueo_resuelto?'✓':''}</button>
@@ -1270,6 +1327,12 @@ function taskCardHTML(t){
   </div>`;
 }
 
+window.toggleCompletadas=function(id){
+  const el=document.getElementById('comp-'+id);
+  const arrow=document.getElementById('comp-arrow-'+id);
+  if(el.style.display==='none'){el.style.display='block';arrow.textContent='▼';}
+  else{el.style.display='none';arrow.textContent='▶';}
+}
 window.editarTema=function(id, nombre){
   const tema = temas.find(t=>t.id===id);
   if(!tema)return;
@@ -1514,6 +1577,44 @@ const PIN_CORRECT = '654821';
 const PIN_KEY = 'sam_auth';
 let pinCurrent = '';
 
+// Face ID / WebAuthn
+window.usarFaceID=async function(){
+  if(!window.PublicKeyCredential){alert('Face ID no disponible en este dispositivo.');return;}
+  try{
+    // Check if credential exists
+    const credId=localStorage.getItem('sam_faceid_cred');
+    if(!credId){
+      // Register Face ID
+      const reg=await navigator.credentials.create({publicKey:{
+        challenge:crypto.getRandomValues(new Uint8Array(32)),
+        rp:{name:'SAM'},
+        user:{id:new Uint8Array(16),name:'agustina',displayName:'Agustina'},
+        pubKeyCredParams:[{type:'public-key',alg:-7}],
+        authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},
+        timeout:60000
+      }});
+      localStorage.setItem('sam_faceid_cred',btoa(String.fromCharCode(...new Uint8Array(reg.rawId))));
+      sessionStorage.setItem(PIN_KEY,'ok');
+      document.getElementById('pin-screen').style.display='none';
+      loadAll();
+    } else {
+      // Authenticate with Face ID
+      const credIdBytes=Uint8Array.from(atob(credId),c=>c.charCodeAt(0));
+      await navigator.credentials.get({publicKey:{
+        challenge:crypto.getRandomValues(new Uint8Array(32)),
+        allowCredentials:[{type:'public-key',id:credIdBytes}],
+        userVerification:'required',
+        timeout:60000
+      }});
+      sessionStorage.setItem(PIN_KEY,'ok');
+      document.getElementById('pin-screen').style.display='none';
+      loadAll();
+    }
+  }catch(e){
+    if(e.name!=='NotAllowedError')alert('Error: '+e.message);
+  }
+}
+
 function pinCheck(){
   // Check if already authenticated in this session
   if(sessionStorage.getItem(PIN_KEY)==='ok'){
@@ -1561,6 +1662,25 @@ function updatePinDots(){
 }
 
 pinCheck();
+// Show/hide Face ID button based on platform support
+if(window.PublicKeyCredential){
+  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(available=>{
+    const btn=document.getElementById('faceid-btn');
+    if(btn){
+      if(available){
+        // Check if it's iPhone (show Face ID icon) or other (show fingerprint)
+        const isIOS=/iPhone|iPad/.test(navigator.userAgent);
+        btn.textContent=isIOS?'👤':'☝️';
+        btn.title=isIOS?'Face ID':'Touch ID';
+      } else {
+        btn.style.display='none';
+      }
+    }
+  });
+} else {
+  const btn=document.getElementById('faceid-btn');
+  if(btn)btn.style.display='none';
+}
 </script>
 </body>
 </html>
