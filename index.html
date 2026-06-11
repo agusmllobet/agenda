@@ -1169,7 +1169,9 @@ function taskCardHTML(t){
   const dateBadge=dl?`<span class="chip c-date ${dl.cls}">${dl.txt}</span>`:'';
   const bloqBadge=t.bloqueo?`<span class="chip c-bloq">${svg(ICO.warn)}</span>`:'';
   const isUrgent=t.fecha&&t.fecha<=todayStr()&&!t.done;
-  return`<div class="task ${t.done?'done-task':''} ${isUrgent?'urgent':''}" style="${t.importante&&!t.done?'background:#fffbeb;border-color:rgba(217,119,6,0.25)':''}">
+  const isSam=t.propuesto_por==='SAM'&&!t.done;
+  const ts=isSam?'background:#f0ebff;border-color:#7c3aed;border-left:3px solid #7c3aed':t.importante&&!t.done?'background:#fffbeb;border-color:rgba(217,119,6,0.25)':'';
+  return`<div class="task ${t.done?'done-task':''} ${isUrgent?'urgent':''}" style="${ts}">
     <div class="check ${t.done?'done':''}" onclick="toggleDone('${t.id}')">${svg(ICO.check)}</div>
     <div class="task-body">
       <div class="task-title">${t.titulo}</div>
