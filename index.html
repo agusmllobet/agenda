@@ -1300,7 +1300,7 @@ function temaCardHTML(tema,todasTareas){
       <span class="tema-chev ${isOpen?'open':''}">${svg(ICO.plus,'style="transform:rotate(45deg)"')}</span>
     </div>
     <div class="tema-body ${isOpen?'open':''}">
-      ${tt.map(t=>taskCardHTML(t)).join('')}
+      ${tt.filter(t=>!t.done).map(t=>taskCardHTML(t)).join('')}
       <div style="margin-top:8px"><button class="tema-btn" onclick="nuevaTareaEnTema('${tema.cliente}','${tema.nombre.replace(/'/g,"\\'")}')">+ Tarea</button></div>
       <!-- Completed tasks section -->
       ${tt.filter(t=>t.done).length>0?`
