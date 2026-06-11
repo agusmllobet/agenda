@@ -607,13 +607,13 @@ const LOGOS={};
 let filtroTipo='todos';
 window.setFiltroHoy=function(el){
   filtroTipo='hoy';
-  document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#filter-bar .fpill').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   render();
 }
 window.setFiltro=function(f,el){
   filtroTipo=f;
-  document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#filter-bar .fpill').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   render();
 }
@@ -836,6 +836,18 @@ async function loadAll(){
       sb('GET','clientes','',`?select=*`),
     ]);
     tareas = ts.map(t=>({...t, done:!!t.done, importante:!!t.importante, hoy:!!t.hoy}));
+    // Promover a importante: si hoy=true pero hoy_fecha es de antes de hoy y no está completada
+    const hoyStr=todayStr();
+    const promoPromises=[];
+    tareas.forEach(t=>{
+      if(t.hoy && !t.done && t.hoy_fecha && t.hoy_fecha < hoyStr){
+        t.importante=true;
+        t.hoy=false;
+        t.hoy_fecha=null;
+        promoPromises.push(sb('PATCH','tareas',{importante:true,hoy:false,hoy_fecha:null},`?id=eq.${t.id}`));
+      }
+    });
+    if(promoPromises.length) await Promise.all(promoPromises);
     temas  = tms;
     comentarios = {};
     cs.forEach(c=>{
@@ -919,7 +931,9 @@ window.toggleBloqueo=async function(id){
 window.toggleHoy=async function(id){
   const t=tareas.find(t=>t.id===id);if(!t)return;
   t.hoy=!t.hoy;
-  await sb('PATCH','tareas',{hoy:t.hoy},`?id=eq.${id}`);
+  const hoy_fecha=t.hoy?todayStr():null;
+  t.hoy_fecha=hoy_fecha;
+  await sb('PATCH','tareas',{hoy:t.hoy,hoy_fecha},`?id=eq.${id}`);
   updateCounts();render();
   if(currentCliente)renderDetail(currentCliente);
 }
