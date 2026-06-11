@@ -271,6 +271,31 @@
     .empty svg{width:40px;height:40px;stroke:var(--text3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin:0 auto 12px;display:block}
     .empty-txt{font-size:14px;line-height:1.5}
 
+    /* PIN SCREEN */
+    .pin-screen{position:fixed;inset:0;background:#fff;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+    .pin-logo{width:80px;height:80px;border-radius:20px;object-fit:cover;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+    .pin-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px}
+    .pin-sub{font-size:14px;color:var(--text2);margin-bottom:32px}
+    .pin-dots{display:flex;gap:14px;margin-bottom:32px}
+    .pin-dot{width:14px;height:14px;border-radius:50%;background:var(--border);transition:background .15s}
+    .pin-dot.filled{background:var(--violet)}
+    .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:260px}
+    .pin-btn{height:70px;border-radius:var(--r-lg);background:var(--bg);border:1px solid var(--border);font-family:var(--font);font-size:24px;font-weight:500;color:var(--text);cursor:pointer;transition:all .1s;display:flex;align-items:center;justify-content:center}
+    .pin-btn:active{background:var(--violet-s);border-color:var(--violet);transform:scale(.96)}
+    .pin-btn.del{font-size:18px;color:var(--text2)}
+    .pin-error{color:var(--red);font-size:13px;margin-top:-20px;margin-bottom:20px;opacity:0;transition:opacity .2s}
+    .pin-error.visible{opacity:1}
+
+    /* SAM BANNER */
+    .sam-banner{margin:12px 16px 0;padding:12px 14px;background:linear-gradient(135deg,var(--violet-s),#fdf2f8);border:1px solid rgba(124,58,237,0.15);border-radius:var(--r-lg);display:none;position:relative}
+    .sam-banner.visible{display:block}
+    .sam-banner-title{font-size:11px;font-weight:700;color:var(--violet);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+    .sam-banner-text{font-size:13px;color:var(--text);line-height:1.5}
+    .sam-banner-close{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1}
+    .sam-banner-stats{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+    .sam-stat{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;background:rgba(124,58,237,0.1);color:var(--violet)}
+    .sam-stat.urgente{background:rgba(220,38,38,0.1);color:var(--red)}
+
     @media(min-width:600px){
       body{background:#eef0f7}
       .shell{box-shadow:0 0 40px rgba(0,0,0,.10)}
@@ -279,6 +304,35 @@
   </style>
 </head>
 <body>
+<div class="pin-screen" id="pin-screen">
+  <img src="favicon.ico" class="pin-logo" alt="SAM"/>
+  <div class="pin-title">SAM</div>
+  <div class="pin-sub">Ingresá tu PIN para continuar</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+    <div class="pin-dot" id="pd4"></div>
+    <div class="pin-dot" id="pd5"></div>
+  </div>
+  <div class="pin-error" id="pin-error">PIN incorrecto</div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinPress('1')">1</button>
+    <button class="pin-btn" onclick="pinPress('2')">2</button>
+    <button class="pin-btn" onclick="pinPress('3')">3</button>
+    <button class="pin-btn" onclick="pinPress('4')">4</button>
+    <button class="pin-btn" onclick="pinPress('5')">5</button>
+    <button class="pin-btn" onclick="pinPress('6')">6</button>
+    <button class="pin-btn" onclick="pinPress('7')">7</button>
+    <button class="pin-btn" onclick="pinPress('8')">8</button>
+    <button class="pin-btn" onclick="pinPress('9')">9</button>
+    <button class="pin-btn" onclick="pinPress('')"></button>
+    <button class="pin-btn" onclick="pinPress('0')">0</button>
+    <button class="pin-btn del" onclick="pinDel()">⌫</button>
+  </div>
+</div>
+
 <div class="shell" id="shell">
   <div id="main-view" style="display:flex;flex-direction:column;height:100%">
     <div class="hdr">
@@ -299,6 +353,12 @@
         <button class="tab" id="tab-foco" onclick="setTab('foco')"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:middle;margin-right:3px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Foco <span class="tab-badge" id="cnt-foco">0</span></button>
         <button class="tab" id="tab-clientes" onclick="setTab('clientes')">Clientes</button>
       </div>
+    </div>
+    <div class="sam-banner" id="sam-banner">
+      <div class="sam-banner-title">💡 SAM · Resumen del día</div>
+      <div class="sam-banner-text" id="sam-banner-text">Analizando tu agenda…</div>
+      <div class="sam-banner-stats" id="sam-banner-stats"></div>
+      <button class="sam-banner-close" onclick="document.getElementById('sam-banner').classList.remove('visible')">×</button>
     </div>
     <div class="toolbar" id="toolbar-todo" style="display:none">
       <input class="search-input" id="search-input" placeholder="Buscar tarea, cliente…" oninput="render()"/>
@@ -776,6 +836,28 @@ async function loadAll(){
   document.getElementById('toolbar-todo').style.display='flex';
   document.getElementById('filter-bar').style.display='flex';
   document.querySelector('.sort-toggle').style.display='flex';
+  // Load SAM daily summary
+  cargarResumenDia();
+}
+
+async function cargarResumenDia(){
+  try{
+    const r=await fetch('https://vtyahpzfbtgcfubegxad.supabase.co/functions/v1/resumen-dia');
+    const data=await r.json();
+    if(data.resumen){
+      document.getElementById('sam-banner-text').textContent=data.resumen;
+      const stats=data.stats;
+      if(stats){
+        let html='';
+        if(stats.vencidas>0)html+=`<span class="sam-stat urgente">🔴 ${stats.vencidas} vencida${stats.vencidas!==1?'s':''}</span>`;
+        if(stats.hoy>0)html+=`<span class="sam-stat">📅 ${stats.hoy} para hoy</span>`;
+        if(stats.bloqueadas>0)html+=`<span class="sam-stat urgente">⚠️ ${stats.bloqueadas} bloqueada${stats.bloqueadas!==1?'s':''}</span>`;
+        html+=`<span class="sam-stat">📌 ${stats.total} total</span>`;
+        document.getElementById('sam-banner-stats').innerHTML=html;
+      }
+      document.getElementById('sam-banner').classList.add('visible');
+    }
+  }catch(e){console.log('Error cargando resumen:',e);}
 }
 
 async function saveTarea(t){
@@ -1427,7 +1509,58 @@ window.guardarTemaModal=async function(){
   renderDetail(newTemaCliente);
 }
 
-loadAll();
+// PIN
+const PIN_CORRECT = '654821';
+const PIN_KEY = 'sam_auth';
+let pinCurrent = '';
+
+function pinCheck(){
+  // Check if already authenticated in this session
+  if(sessionStorage.getItem(PIN_KEY)==='ok'){
+    document.getElementById('pin-screen').style.display='none';
+    loadAll();
+    return;
+  }
+  // Show pin screen
+  document.getElementById('pin-screen').style.display='flex';
+}
+
+window.pinPress=function(n){
+  if(pinCurrent.length>=6)return;
+  pinCurrent+=n;
+  updatePinDots();
+  if(pinCurrent.length===6){
+    if(pinCurrent===PIN_CORRECT){
+      sessionStorage.setItem(PIN_KEY,'ok');
+      document.getElementById('pin-screen').style.display='none';
+      loadAll();
+    } else {
+      document.getElementById('pin-error').classList.add('visible');
+      document.querySelectorAll('.pin-dot').forEach(d=>d.style.background='var(--red)');
+      setTimeout(()=>{
+        pinCurrent='';
+        updatePinDots();
+        document.getElementById('pin-error').classList.remove('visible');
+      },800);
+    }
+  }
+}
+
+window.pinDel=function(){
+  if(!pinCurrent.length)return;
+  pinCurrent=pinCurrent.slice(0,-1);
+  updatePinDots();
+}
+
+function updatePinDots(){
+  for(let i=0;i<6;i++){
+    const el=document.getElementById('pd'+i);
+    el.classList.toggle('filled',i<pinCurrent.length);
+    el.style.background='';
+  }
+}
+
+pinCheck();
 </script>
 </body>
 </html>
