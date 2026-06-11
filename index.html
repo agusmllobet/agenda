@@ -894,7 +894,7 @@ async function cargarResumenDia(){
         html=`<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px">${saludo}</div>`;
         if(bullets.length>0){
           html+='<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px">'+
-            bullets.map(l=>`<li style="font-size:13px;color:var(--text);line-height:1.4;display:flex;gap:4px"><span style="flex-shrink:0">${l.match(/^-\s*/)?'':''}</span><span>${l.replace(/^-\s*/,'')}</span></li>`).join('')+
+            bullets.map(l=>`<li style="font-size:13px;color:var(--text);line-height:1.4;display:flex;gap:6px"><span style="flex-shrink:0;color:var(--blue);font-weight:700">·</span><span>${l.replace(/^-\s*/,'')}</span></li>`).join('')+
           '</ul>';
         }
       } else { html=texto; }
@@ -905,8 +905,8 @@ async function cargarResumenDia(){
         if(stats.pendientesAyer>0)html+=`<span class="sam-stat urgente" onclick="cerrarYNavegar(()=>irAFoco('hoy'))" style="cursor:pointer">⏰ ${stats.pendientesAyer} de ayer</span>`;
         if(stats.vencidas>0)html+=`<span class="sam-stat urgente" onclick="cerrarYNavegar(()=>irAFoco('todos'))" style="cursor:pointer">🔴 ${stats.vencidas} vencida${stats.vencidas!==1?'s':''}</span>`;
         if(stats.hoy>0)html+=`<span class="sam-stat" onclick="cerrarYNavegar(()=>irAFoco('hoy'))" style="cursor:pointer">🕐 ${stats.hoy} para hoy</span>`;
-        if(stats.bloqueadas>0)html+=`<span class="sam-stat urgente" onclick="cerrarYNavegar(()=>setTab('todo'))" style="cursor:pointer">⚠️ ${stats.bloqueadas} bloqueada${stats.bloqueadas!==1?'s':''}</span>`;
-        html+=`<span class="sam-stat">📌 ${stats.total} total</span>`;
+        if(stats.bloqueadas>0)html+=`<span class="sam-stat urgente" onclick="cerrarYNavegar(()=>irAFoco('bloqueadas'))" style="cursor:pointer">⚠️ ${stats.bloqueadas} bloqueada${stats.bloqueadas!==1?'s':''}</span>`;
+
         document.getElementById('sam-banner-stats').innerHTML=html;
       }
       document.getElementById('sam-wrapper').style.display='block';
@@ -988,17 +988,20 @@ window.borrarComentario=async function(id,temaId){
 // Event delegation para bitácora - evita pérdida de foco al re-render
 document.addEventListener('keydown', function(e){
   if(e.key==='Enter' && e.target.classList.contains('comment-input')){
-    e.preventDefault();
-    const temaId=e.target.dataset.temaId;
+    const temaId=e.target.getAttribute('data-tema-id');
     const val=e.target.value;
-    if(temaId && val.trim()) addComment(temaId, val).then(()=>{e.target.value='';});
+    if(temaId && val.trim()){
+      e.preventDefault();
+      addComment(temaId, val).then(()=>{e.target.value=''; e.target.focus();});
+    }
   }
 });
 document.addEventListener('click', function(e){
-  if(e.target.classList.contains('comment-btn') && e.target.dataset.temaId){
-    const temaId=e.target.dataset.temaId;
-    const input=document.querySelector(`.comment-input[data-tema-id="${temaId}"]`);
-    if(input && input.value.trim()) addComment(temaId, input.value).then(()=>{input.value='';});
+  const btn=e.target.closest('.comment-btn');
+  if(btn && btn.getAttribute('data-tema-id')){
+    const temaId=btn.getAttribute('data-tema-id');
+    const input=document.querySelector('.comment-input[data-tema-id="'+temaId+'"]');
+    if(input && input.value.trim()) addComment(temaId, input.value).then(()=>{input.value=''; input.focus();});
   }
 });
 
@@ -1120,18 +1123,21 @@ let focoFiltro='importantes'; // 'importantes' | 'hoy' | 'todos'
 function renderFoco(lista,items){
   const importantes=items.filter(t=>t.importante&&!t.done);
   const hoyTareas=items.filter(t=>t.hoy&&!t.done);
-  const todas=[...new Map([...importantes,...hoyTareas].map(t=>[t.id,t])).values()];
+  const bloqueadas=items.filter(t=>t.bloqueo&&!t.bloqueo_resuelto&&!t.done);
+  const todas=[...new Map([...importantes,...hoyTareas,...bloqueadas].map(t=>[t.id,t])).values()];
 
   // Filter toggle bar
   let filterBar=`<div style="display:flex;gap:6px;padding:0 0 12px;overflow-x:auto;scrollbar-width:none">
     <button class="fpill ${focoFiltro==='todos'?'active':''}" style="--fpcolor:var(--violet);--fpbg:var(--violet-s)" onclick="setFocoFiltro('todos')">Todas</button>
     <button class="fpill ${focoFiltro==='importantes'?'active':''}" style="--fpcolor:var(--blue);--fpbg:var(--blue-s)" onclick="setFocoFiltro('importantes')">👁 Importantes</button>
     <button class="fpill ${focoFiltro==='hoy'?'active':''}" style="--fpcolor:var(--orange);--fpbg:var(--orange-s)" onclick="setFocoFiltro('hoy')">🕐 Para hoy</button>
+    ${bloqueadas.length?`<button class="fpill ${focoFiltro==='bloqueadas'?'active':''}" style="--fpcolor:var(--red);--fpbg:#fee2e2" onclick="setFocoFiltro('bloqueadas')">⛔ Bloqueadas</button>`:''}
   </div>`;
 
   let filtered;
   if(focoFiltro==='importantes') filtered=importantes;
   else if(focoFiltro==='hoy') filtered=hoyTareas;
+  else if(focoFiltro==='bloqueadas') filtered=bloqueadas;
   else filtered=todas;
 
   if(!filtered.length){
@@ -1173,7 +1179,7 @@ window.cerrarYNavegar=function(fn){
   fn();
 }
 window.irAFoco=function(filtro){
-  focoFiltro=filtro;
+  focoFiltro=filtro||'importantes';
   setTab('foco');
 }
 window.irAFiltro=function(tipo){
