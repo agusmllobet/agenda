@@ -988,24 +988,7 @@ window.borrarComentario=async function(id,temaId){
   renderDetail(currentCliente);
 }
 // Event delegation para bitácora - evita pérdida de foco al re-render
-document.addEventListener('keydown', function(e){
-  if(e.key==='Enter' && e.target.classList.contains('comment-input')){
-    const temaId=e.target.getAttribute('data-tema-id');
-    const val=e.target.value;
-    if(temaId && val.trim()){
-      e.preventDefault();
-      addComment(temaId, val).then(()=>{e.target.value=''; e.target.focus();});
-    }
-  }
-});
-document.addEventListener('click', function(e){
-  const btn=e.target.closest('.comment-btn');
-  if(btn && btn.getAttribute('data-tema-id')){
-    const temaId=btn.getAttribute('data-tema-id');
-    const input=document.querySelector('.comment-input[data-tema-id="'+temaId+'"]');
-    if(input && input.value.trim()) addComment(temaId, input.value).then(()=>{input.value=''; input.focus();});
-  }
-});
+// bitácora handlers se setean en renderDetail
 
 window.addComment=async function(temaId,texto){
   if(!texto.trim())return;
@@ -1385,7 +1368,20 @@ function renderDetail(nombre){
   // Activar inputs de bitácora directamente
   lista.querySelectorAll('.comment-input').forEach(input=>{
     input.addEventListener('keydown',function(e){
-      // En móvil Enter hace salto de línea, usar botón OK para guardar
+      if(e.key==='Enter'){
+        const isMobile=/iPhone|iPad|Android/i.test(navigator.userAgent);
+        if(isMobile){
+          // En móvil: Enter siempre es salto de línea, OK guarda
+          return;
+        } else {
+          // En desktop: Shift+Enter = salto, Enter = guardar
+          if(!e.shiftKey){
+            const temaId=this.getAttribute('data-tema-id');
+            const val=this.value;
+            if(temaId&&val.trim()){e.preventDefault();addComment(temaId,val).then(()=>{this.value='';this.focus();});}
+          }
+        }
+      }
     });
   });
   lista.querySelectorAll('.comment-btn').forEach(btn=>{
