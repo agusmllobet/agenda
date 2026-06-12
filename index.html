@@ -342,7 +342,7 @@
       <div class="hdr-top">
         <div style="display:flex;align-items:center;gap:10px">
           <img src="favicon.ico" style="width:36px;height:36px;border-radius:10px;object-fit:cover" alt="SAM"/>
-          <div><div class="hdr-title">SAM</div><div class="hdr-sub" id="hdr-sub">Cargando…</div></div>
+          <div><div class="hdr-title">SAM</div></div>
         </div>
         <div class="hdr-actions">
           <button class="ico-btn" onclick="toggleSearch()" title="Buscar">🔍</button>
@@ -899,18 +899,7 @@ async function cargarResumenDia(){
         }
       } else { html=texto; }
       document.getElementById('sam-banner-text').innerHTML=html;
-      const stats=data.stats;
-      if(stats){
-        let html='';
-        if(stats.pendientesAyer>0)html+=`<span class="sam-stat urgente" onclick="cerrarYNavegar(()=>irAFoco('hoy'))" style="cursor:pointer">⏰ ${stats.pendientesAyer} de ayer</span>`;
-        if(stats.vencidas>0)html+=`<span class="sam-stat urgente" onclick="cerrarYNavegar(()=>irAFoco('todos'))" style="cursor:pointer">🔴 ${stats.vencidas} vencida${stats.vencidas!==1?'s':''}</span>`;
-        if(stats.hoy>0)html+=`<span class="sam-stat" onclick="cerrarYNavegar(()=>irAFoco('hoy'))" style="cursor:pointer">🕐 ${stats.hoy} para hoy</span>`;
-        if(stats.importantes>0)html+=`<span class="sam-stat" onclick="cerrarYNavegar(()=>irAFoco('importantes'))" style="cursor:pointer">👁 ${stats.importantes} importante${stats.importantes!==1?'s':''}</span>`;
-        html+=`<span class="sam-stat">📌 ${stats.total} total</span>`;
-        if(stats.bloqueadas>0)html+=`<span class="sam-stat urgente" onclick="cerrarYNavegar(()=>irAFoco('bloqueadas'))" style="cursor:pointer">⚠️ ${stats.bloqueadas} bloqueada${stats.bloqueadas!==1?'s':''}</span>`;
-
-        document.getElementById('sam-banner-stats').innerHTML=html;
-      }
+      actualizarStatsSAM();
       document.getElementById('sam-wrapper').style.display='block';
     }
   }catch(e){console.log('Error cargando resumen:',e);}
@@ -1021,6 +1010,7 @@ window.addComment=async function(temaId,texto){
 }
 
 function updateCounts(){
+  actualizarStatsSAM();
   const hoy=todayStr();
   const p=tareas.filter(t=>!t.done);
   document.getElementById('cnt-todo').textContent=p.length;
@@ -1031,7 +1021,7 @@ function updateCounts(){
   let s=`${p.length} pendiente${p.length!==1?'s':''}`;
   if(h)s+=` · ${h} para hoy`;
   if(foco)s+=` · ${foco} en foco`;
-  document.getElementById('hdr-sub').textContent=s;
+  // hdr-sub removed
 }
 function updateDatalists(){
   const cl=[...new Set(tareas.map(t=>t.cliente).filter(Boolean))].sort();
@@ -1103,21 +1093,26 @@ function cardHTML(t,showCliente=true){
   const bloqBadge=t.bloqueo?`<span class="chip c-bloq">⛔ Bloqueado</span>`:'';
   const isUrgent=t.fecha&&t.fecha<=todayStr()&&!t.done;
   const isSam=t.propuesto_por==='SAM'&&!t.done;
+  const cfg=getCfg(t.cliente||'');
   return`<div class="card ${t.done?'done':''} ${isUrgent?'urgent':''} ${t.importante&&!t.done&&!isSam?'importante':''} ${isSam?'sam':''}">
     <div class="check ${t.done?'done':''}" onclick="toggleDone('${t.id}')">${svg(ICO.check)}</div>
     <div class="card-body">
       <div class="card-title">${t.titulo}</div>
-      <div class="card-chips">${tipoChip(t.tipo)}${clBadge}${tmBadge}${bloqBadge}${dateBadge}${t.propuesto_por==='SAM'||t.propuesto_por==='sam'?'<span class="chip c-sam">💡 SAM</span>':''}${t.hoy&&!t.done?'<span class="chip c-hoy"><svg viewBox="0 0 24 24" width="11" height="11" style="flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Hoy</span>':''}</div>
+      <div class="card-chips">${tipoChip(t.tipo)}${bloqBadge}${dateBadge}${t.propuesto_por==='SAM'||t.propuesto_por==='sam'?'<span class="chip c-sam">💡 SAM</span>':''}${t.hoy&&!t.done?'<span class="chip c-hoy"><svg viewBox="0 0 24 24" width="11" height="11" style="flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Hoy</span>':''}</div>
       ${t.nota?`<div class="card-note">${t.nota}</div>`:''}
       ${t.bloqueo?`<div class="card-blocked" style="${t.bloqueo_resuelto?'opacity:.5;text-decoration:line-through':''}">
         <button onclick="event.stopPropagation();toggleBloqueo('${t.id}')" style="background:${t.bloqueo_resuelto?'var(--green)':'transparent'};border:1.5px solid ${t.bloqueo_resuelto?'var(--green)':'var(--red)'};border-radius:50%;width:16px;height:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:4px;font-size:9px;color:${t.bloqueo_resuelto?'#fff':'var(--red)'}">${t.bloqueo_resuelto?'✓':''}</button>
         ⛔ ${t.bloqueo}
       </div>`:''}
     </div>
-    <div class="card-acts">
-      <button class="tiny" onclick="toggleHoy('${t.id}')" title="Para hoy" style="${t.hoy&&!t.done?'color:var(--orange)':''}"><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/><path d="M12 21v-2M21 12h-2M12 3V5M3 12h2"/></svg></button>
-      <button class="tiny ${t.importante?'importante-on':''}" onclick="toggleImportante('${t.id}')" title="Importante" style="${t.importante?'color:var(--blue)':''}">${svg(t.importante?ICO.eye:ICO.eyeoff)}</button>
-      ${tinyBtn('edit',`editarTarea('${t.id}')`)}${tinyBtn('trash',`confirmarBorrar('${t.id}')`)}</div>
+    <div class="card-acts" style="align-items:flex-end">
+      <div style="display:flex;gap:2px;margin-bottom:4px">
+        <button class="tiny" onclick="toggleHoy('${t.id}')" title="Para hoy" style="${t.hoy&&!t.done?'color:var(--orange)':''}"><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/><path d="M12 21v-2M21 12h-2M12 3V5M3 12h2"/></svg></button>
+        <button class="tiny ${t.importante?'importante-on':''}" onclick="toggleImportante('${t.id}')" title="Importante" style="${t.importante?'color:var(--blue)':''}">${svg(t.importante?ICO.eye:ICO.eyeoff)}</button>
+        ${tinyBtn('edit',`editarTarea('${t.id}')`)}${tinyBtn('trash',`confirmarBorrar('${t.id}')`)}
+      </div>
+      ${showCliente&&t.cliente?`<div style="text-align:right"><div style="font-size:12px;font-weight:700;color:${cfg.color||'var(--text2)'}">${t.cliente}</div>${t.tema?`<div style="font-size:11px;color:var(--text3);margin-top:1px">${t.tema}</div>`:''}</div>`:''}
+    </div>
   </div>`;
 }
 
@@ -1165,6 +1160,28 @@ function renderFoco(lista,items){
     grupos[k].forEach(t=>html+=cardHTML(t,false));
   });
   lista.innerHTML=html;
+}
+
+function actualizarStatsSAM(){
+  if(!tareas.length) return;
+  const hoy=todayStr();
+  const ayer=new Date(Date.now()-3*60*60*1000-86400000).toISOString().split('T')[0];
+  const pend=tareas.filter(t=>!t.done);
+  const nHoy=pend.filter(t=>t.hoy).length;
+  const nImportantes=pend.filter(t=>t.importante).length;
+  const nBloqueadas=pend.filter(t=>t.bloqueo&&!t.bloqueo_resuelto).length;
+  const nAyer=pend.filter(t=>t.hoy&&t.hoy_fecha===ayer).length;
+  const nVencidas=pend.filter(t=>t.fecha&&t.fecha<hoy).length;
+  const nTotal=pend.length;
+  let html='';
+  if(nAyer>0)html+=`<span class="sam-stat urgente" onclick="cerrarYNavegar(()=>irAFoco('hoy'))" style="cursor:pointer">⏰ ${nAyer} de ayer</span>`;
+  if(nVencidas>0)html+=`<span class="sam-stat urgente" onclick="cerrarYNavegar(()=>irAFoco('todos'))" style="cursor:pointer">🔴 ${nVencidas} vencida${nVencidas!==1?'s':''}</span>`;
+  if(nHoy>0)html+=`<span class="sam-stat" onclick="cerrarYNavegar(()=>irAFoco('hoy'))" style="cursor:pointer">🕐 ${nHoy} para hoy</span>`;
+  if(nImportantes>0)html+=`<span class="sam-stat" onclick="cerrarYNavegar(()=>irAFoco('importantes'))" style="cursor:pointer">👁 ${nImportantes} importante${nImportantes!==1?'s':''}</span>`;
+  if(nBloqueadas>0)html+=`<span class="sam-stat urgente" onclick="cerrarYNavegar(()=>irAFoco('bloqueadas'))" style="cursor:pointer">⚠️ ${nBloqueadas} bloqueada${nBloqueadas!==1?'s':''}</span>`;
+  html+=`<span class="sam-stat">📌 ${nTotal} total</span>`;
+  const el=document.getElementById('sam-banner-stats');
+  if(el)el.innerHTML=html;
 }
 
 window.cerrarYNavegar=function(fn){
@@ -1395,6 +1412,7 @@ function temaCardHTML(tema,todasTareas){
         ${tema.estado==='abierto'?`<button class="tema-btn" onclick="cambiarEstadoTema('${tema.id}','encurso')">→ En curso</button>`:''}
         ${tema.estado==='encurso'?`<button class="tema-btn" onclick="cambiarEstadoTema('${tema.id}','abierto')">← Abrir</button>`:''}
         ${tema.estado!=='cerrado'?`<button class="tema-btn danger" onclick="cambiarEstadoTema('${tema.id}','cerrado')">Archivar</button>`:`<button class="tema-btn" onclick="cambiarEstadoTema('${tema.id}','abierto')">Reabrir</button>`}
+        <button class="tema-btn danger" onclick="eliminarTema('${tema.id}','${tema.nombre.replace(/'/g,"\\'")}')">Eliminar</button>
       </div>
     </div>
   </div>`;
@@ -1446,6 +1464,19 @@ window.editarTema=function(id, nombre){
   });
 }
 
+window.eliminarTema=async function(id, nombre){
+  if(!confirm('¿Eliminar el tema "'+nombre+'"? También se eliminarán todas sus tareas.'))return;
+  const tema=temas.find(t=>t.id===id);
+  if(!tema)return;
+  const tareasDelTema=tareas.filter(t=>t.tema===nombre&&t.cliente===tema.cliente);
+  await Promise.all(tareasDelTema.map(t=>sb('DELETE','tareas',null,'?id=eq.'+t.id)));
+  tareas=tareas.filter(t=>!tareasDelTema.find(td=>td.id===t.id));
+  await sb('DELETE','comentarios',null,'?tema_id=eq.'+id);
+  delete comentarios[id];
+  await sb('DELETE','temas',null,'?id=eq.'+id);
+  temas=temas.filter(t=>t.id!==id);
+  updateCounts();renderDetail(currentCliente);
+}
 window.toggleTema=function(id){
   temaCollapsed[id]=temaCollapsed[id]===false?true:false;
   renderDetail(currentCliente);
