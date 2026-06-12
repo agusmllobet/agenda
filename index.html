@@ -1311,7 +1311,7 @@ function renderClientes(lista){
   });
   let html=`<button onclick="abrirNuevoCliente()" style="width:100%;margin-bottom:14px;padding:12px;background:var(--blue-s);border:none;border-radius:var(--r-lg);color:var(--blue);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Agregar cliente / partner / interno</button>`;
   Object.keys(grupos).forEach(g=>{
-    const members=grupos[g].sort();
+    const members=grupos[g].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
     if(!members.length)return;
     html+=`<div class="slbl">${g}</div><div class="tile-grid">`;
     members.forEach(c=>{
