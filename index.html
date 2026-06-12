@@ -973,6 +973,14 @@ window.cambiarEstadoTema=async function(id,estado){
   const t=temas.find(t=>t.id===id);if(t)t.estado=estado;
   renderDetail(currentCliente);
 }
+window.editarComentario=async function(id,temaId,textoActual){
+  const nuevo=prompt('Editar update:',textoActual);
+  if(!nuevo||nuevo===textoActual)return;
+  await sb('PATCH','comentarios',{texto:nuevo.trim()},`?id=eq.${id}`);
+  const list=comentarios[temaId];
+  if(list){const c=list.find(c=>c.id===id);if(c)c.texto=nuevo.trim();}
+  renderDetail(currentCliente);
+}
 window.borrarComentario=async function(id,temaId){
   if(!confirm('¿Eliminar este update de la bitácora?'))return;
   await sb('DELETE','comentarios',null,`?id=eq.${id}`);
@@ -1374,6 +1382,23 @@ function renderDetail(nombre){
   if(sinTema.length){html+=`<div class="slbl">Sin tema asignado</div>`;sinTema.forEach(t=>html+=taskCardHTML(t))}
   if(cerrados.length){html+=`<div class="slbl">Archivados (${cerrados.length})</div>`;cerrados.forEach(tema=>html+=temaCardHTML(tema,cTareas,true))}
   lista.innerHTML=html||'<div class="empty"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><div class="empty-txt">Sin temas ni tareas aún.</div></div>';
+  // Activar inputs de bitácora directamente
+  lista.querySelectorAll('.comment-input').forEach(input=>{
+    input.addEventListener('keydown',function(e){
+      if(e.key==='Enter'){
+        const temaId=this.getAttribute('data-tema-id');
+        const val=this.value;
+        if(temaId&&val.trim()){e.preventDefault();addComment(temaId,val).then(()=>{this.value='';this.focus();});}
+      }
+    });
+  });
+  lista.querySelectorAll('.comment-btn').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      const temaId=this.getAttribute('data-tema-id');
+      const input=lista.querySelector('.comment-input[data-tema-id="'+temaId+'"]');
+      if(input&&input.value.trim()) addComment(temaId,input.value).then(()=>{input.value='';input.focus();});
+    });
+  });
 }
 
 function temaCardHTML(tema,todasTareas){
@@ -1407,7 +1432,7 @@ function temaCardHTML(tema,todasTareas){
       }
       <div class="bit-section">
         <div class="bit-label">Bitácora</div>
-        ${coms.map(c=>`<div class="bit-entry"><div class="bit-dot"></div><div style="flex:1"><div class="bit-text">${c.texto}</div><div class="bit-date">${formatFecha(c.fecha)}</div></div><button onclick="borrarComentario('${c.id}','${tema.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 4px;flex-shrink:0">🗑</button></div>`).join('')}
+        ${coms.map(c=>`<div class="bit-entry"><div class="bit-dot"></div><div style="flex:1"><div class="bit-text">${c.texto}</div><div class="bit-date">${formatFecha(c.fecha)}</div></div><div style="display:flex;gap:2px;flex-shrink:0"><button onclick="editarComentario('${c.id}','${tema.id}','${c.texto.replace(/'/g,'&#39;')}' )" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 4px">✏️</button><button onclick="borrarComentario('${c.id}','${tema.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 4px">🗑</button></div></div>`).join('')}
         ${tema.estado!=='cerrado'?`<div class="add-comment"><input class="comment-input" id="ci-${tema.id}" placeholder="Agregar update…" data-tema-id="${tema.id}"/><button class="comment-btn" data-tema-id="${tema.id}">OK</button></div>`:''}
       </div>
       <div class="tema-actions">
