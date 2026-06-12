@@ -1385,11 +1385,7 @@ function renderDetail(nombre){
   // Activar inputs de bitácora directamente
   lista.querySelectorAll('.comment-input').forEach(input=>{
     input.addEventListener('keydown',function(e){
-      if(e.key==='Enter'){
-        const temaId=this.getAttribute('data-tema-id');
-        const val=this.value;
-        if(temaId&&val.trim()){e.preventDefault();addComment(temaId,val).then(()=>{this.value='';this.focus();});}
-      }
+      // En móvil Enter hace salto de línea, usar botón OK para guardar
     });
   });
   lista.querySelectorAll('.comment-btn').forEach(btn=>{
@@ -1433,7 +1429,7 @@ function temaCardHTML(tema,todasTareas){
       <div class="bit-section">
         <div class="bit-label">Bitácora</div>
         ${coms.map(c=>`<div class="bit-entry"><div class="bit-dot"></div><div style="flex:1"><div class="bit-text">${c.texto}</div><div class="bit-date">${formatFecha(c.fecha)}</div></div><div style="display:flex;gap:2px;flex-shrink:0"><button onclick="editarComentario('${c.id}','${tema.id}','${c.texto.replace(/'/g,'&#39;')}' )" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 4px">✏️</button><button onclick="borrarComentario('${c.id}','${tema.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 4px">🗑</button></div></div>`).join('')}
-        ${tema.estado!=='cerrado'?`<div class="add-comment"><input class="comment-input" id="ci-${tema.id}" placeholder="Agregar update…" data-tema-id="${tema.id}"/><button class="comment-btn" data-tema-id="${tema.id}">OK</button></div>`:''}
+        ${tema.estado!=='cerrado'?`<div class="add-comment"><textarea class="comment-input" id="ci-${tema.id}" placeholder="Agregar update…" data-tema-id="${tema.id}" rows="2" style="resize:none;font-family:var(--font);font-size:13px"></textarea><button class="comment-btn" data-tema-id="${tema.id}">OK</button></div>`:''}
       </div>
       <div class="tema-actions">
         ${tema.estado==='abierto'?`<button class="tema-btn" onclick="cambiarEstadoTema('${tema.id}','encurso')">→ En curso</button>`:''}
