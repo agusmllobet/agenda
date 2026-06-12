@@ -1448,7 +1448,6 @@ function taskCardHTML(t){
   const isSam=t.propuesto_por==='SAM'&&!t.done;
   const ts=isSam?'background:#f0ebff;border-color:#7c3aed;border-left:3px solid #7c3aed':t.importante&&!t.done?'background:#fffbeb;border-color:rgba(217,119,6,0.25)':'';
   return`<div class="task ${t.done?'done-task':''} ${isUrgent?'urgent':''}" style="${ts}">
-  return`<div class="task ${t.done?'done-task':''} ${isUrgent?'urgent':''}" style="${ts}">
     <div class="check ${t.done?'done':''}" onclick="toggleDone('${t.id}')">${svg(ICO.check)}</div>
     <div class="task-body">
       <div class="task-title ${t.hoy&&!t.done?'hoy-highlight':''}">${t.titulo}</div>
