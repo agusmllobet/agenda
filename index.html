@@ -1105,13 +1105,13 @@ function cardHTML(t,showCliente=true){
         ⛔ ${t.bloqueo}
       </div>`:''}
     </div>
-    <div class="card-acts" style="align-items:flex-end">
-      <div style="display:flex;gap:2px;margin-bottom:4px">
+    <div class="card-acts" style="align-items:flex-end;flex-direction:column;justify-content:space-between">
+      <div style="display:flex;gap:2px">
         <button class="tiny" onclick="toggleHoy('${t.id}')" title="Para hoy" style="${t.hoy&&!t.done?'color:var(--orange)':''}"><svg viewBox="0 0 24 24" width="14" height="14" style="flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/><path d="M12 21v-2M21 12h-2M12 3V5M3 12h2"/></svg></button>
         <button class="tiny ${t.importante?'importante-on':''}" onclick="toggleImportante('${t.id}')" title="Importante" style="${t.importante?'color:var(--blue)':''}">${svg(t.importante?ICO.eye:ICO.eyeoff)}</button>
         ${tinyBtn('edit',`editarTarea('${t.id}')`)}${tinyBtn('trash',`confirmarBorrar('${t.id}')`)}
       </div>
-      ${showCliente&&t.cliente?`<div style="text-align:right"><div style="font-size:12px;font-weight:700;color:${cfg.color||'var(--text2)'}">${t.cliente}</div>${t.tema?`<div style="font-size:11px;color:var(--text3);margin-top:1px">${t.tema}</div>`:''}</div>`:''}
+      ${showCliente&&t.cliente?`<div style="text-align:right;margin-top:6px"><div style="font-size:12px;font-weight:700;color:${cfg.color||'var(--text2)'}">${t.cliente}</div>${t.tema?`<div style="font-size:11px;color:var(--text3);margin-top:1px">${t.tema}</div>`:''}</div>`:''}
     </div>
   </div>`;
 }
