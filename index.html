@@ -417,8 +417,8 @@
     <div class="sheet-title" id="sheet-title">Nueva tarea</div>
     <div class="field"><label>Título *</label><input type="text" id="f-titulo" placeholder="¿Qué tenés que hacer?"/></div>
     <div class="frow">
-      <div class="field"><label>Cliente / Área</label><input type="text" id="f-cliente" list="cl-list"/><datalist id="cl-list"></datalist></div>
-      <div class="field"><label>Tema</label><input type="text" id="f-tema" list="tema-list"/><datalist id="tema-list"></datalist></div>
+      <div class="field"><label>Cliente / Área</label><select id="f-cliente" onchange="fillTemaList(this.value);document.getElementById('f-tema').value=''"><option value="">— elegir —</option></select></div>
+      <div class="field"><label>Tema</label><select id="f-tema"><option value="">— elegir —</option></select></div>
     </div>
     <div class="frow">
       <div class="field"><label>Tipo</label>
@@ -1020,20 +1020,26 @@ function updateCounts(){
   // hdr-sub removed
 }
 function updateDatalists(){
-  const cl=[...new Set(tareas.map(t=>t.cliente).filter(Boolean))].sort();
-  document.getElementById('cl-list').innerHTML=cl.map(c=>`<option value="${c}">`).join('');
-  fillTemaList();
+  const cl=[...new Set([
+    ...Object.keys(CLIENT_CFG),
+    ...tareas.map(t=>t.cliente).filter(Boolean)
+  ])].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+  const sel=document.getElementById('f-cliente');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— elegir —</option>'+cl.map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(cur)sel.value=cur;
+  fillTemaList(sel.value);
 }
 function fillTemaList(clienteFiltro){
-  const c=clienteFiltro||document.getElementById('f-cliente')?.value?.trim();
+  const c=clienteFiltro||document.getElementById('f-cliente')?.value;
   const tm=c
     ?[...new Set(temas.filter(t=>t.cliente===c).map(t=>t.nombre).filter(Boolean))].sort()
     :[...new Set(temas.map(t=>t.nombre).filter(Boolean))].sort();
-  document.getElementById('tema-list').innerHTML=tm.map(t=>`<option value="${t}">`).join('');
+  const sel=document.getElementById('f-tema');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— elegir —</option>'+tm.map(t=>`<option value="${t}">${t}</option>`).join('');
+  if(cur)sel.value=cur;
 }
-document.addEventListener('input',function(e){
-  if(e.target.id==='f-cliente')fillTemaList(e.target.value.trim());
-});
 function dateLabel(f){
   if(!f)return null;
   const hoy=todayStr();
@@ -1530,7 +1536,7 @@ window.abrirForm=function(){
   ['f-titulo','f-cliente','f-tema','f-bloqueo','f-nota'].forEach(id=>document.getElementById(id).value='');
   selectTipo('mail');
   document.getElementById('f-fecha').value=todayStr();
-  if(currentCliente)document.getElementById('f-cliente').value=currentCliente;
+  if(currentCliente){document.getElementById('f-cliente').value=currentCliente;fillTemaList(currentCliente);}
   document.getElementById('sheet-title').textContent='Nueva tarea';
   document.getElementById('overlay').classList.add('open');
 }
@@ -1539,6 +1545,7 @@ window.editarTarea=function(id){
   editId=id;
   document.getElementById('f-titulo').value=t.titulo;
   document.getElementById('f-cliente').value=t.cliente||'';
+  fillTemaList(t.cliente||'');
   document.getElementById('f-tema').value=t.tema||'';
   selectTipo(t.tipo||'mail');
   document.getElementById('f-fecha').value=t.fecha||'';
@@ -1551,6 +1558,7 @@ window.nuevaTareaEnTema=function(cliente,tema){
   editId=null;
   ['f-titulo','f-bloqueo','f-nota'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-cliente').value=cliente;
+  fillTemaList(cliente);
   document.getElementById('f-tema').value=tema;
   selectTipo('mail');
   document.getElementById('f-fecha').value=todayStr();
