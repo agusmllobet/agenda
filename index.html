@@ -362,7 +362,7 @@
         <span>💡</span><span id="sam-toggle-label">Ver resumen del día</span><span style="margin-left:auto;font-size:11px" id="sam-toggle-arrow">▼</span>
       </button>
       <div class="sam-banner" id="sam-banner" style="display:none;border-top:1px solid rgba(37,99,235,0.15)">
-        <div class="sam-banner-title">💡 SAM · Resumen del día</div>
+        <div class="sam-banner-title">💡 SAM · Resumen del día &nbsp;<span id="sam-saludo" style="font-size:13px;font-weight:600;color:var(--text);text-transform:none;letter-spacing:normal"></span></div>
         <div class="sam-banner-text" id="sam-banner-text">Analizando tu agenda…</div>
         <div class="sam-banner-stats" id="sam-banner-stats"></div>
       </div>
@@ -891,7 +891,9 @@ async function cargarResumenDia(){
       if(lines.length>0){
         const saludo=lines[0];
         const bullets=lines.slice(1).filter(l=>l.length>2&&!/pendientes? (en total|totales?)/i.test(l));
-        html=`<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px">${saludo}</div>`;
+        const sEl=document.getElementById('sam-saludo');
+        if(sEl)sEl.textContent=saludo;
+        html='';
         if(bullets.length>0){
           html+='<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px">'+
             bullets.map(l=>`<li style="font-size:13px;color:var(--text);line-height:1.4;display:flex;gap:6px"><span style="flex-shrink:0;color:var(--blue);font-weight:700">·</span><span>${l.replace(/^-\s*/,'')}</span></li>`).join('')+
