@@ -906,6 +906,7 @@ async function cargarResumenDia(){
         if(stats.vencidas>0)html+=`<span class="sam-stat urgente" onclick="cerrarYNavegar(()=>irAFoco('todos'))" style="cursor:pointer">🔴 ${stats.vencidas} vencida${stats.vencidas!==1?'s':''}</span>`;
         if(stats.hoy>0)html+=`<span class="sam-stat" onclick="cerrarYNavegar(()=>irAFoco('hoy'))" style="cursor:pointer">🕐 ${stats.hoy} para hoy</span>`;
         if(stats.importantes>0)html+=`<span class="sam-stat" onclick="cerrarYNavegar(()=>irAFoco('importantes'))" style="cursor:pointer">👁 ${stats.importantes} importante${stats.importantes!==1?'s':''}</span>`;
+        html+=`<span class="sam-stat">📌 ${stats.total} total</span>`;
         if(stats.bloqueadas>0)html+=`<span class="sam-stat urgente" onclick="cerrarYNavegar(()=>irAFoco('bloqueadas'))" style="cursor:pointer">⚠️ ${stats.bloqueadas} bloqueada${stats.bloqueadas!==1?'s':''}</span>`;
 
         document.getElementById('sam-banner-stats').innerHTML=html;
