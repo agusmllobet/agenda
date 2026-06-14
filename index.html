@@ -1909,57 +1909,64 @@ if(window.PublicKeyCredential){
 let samHistorial = [];
 
 // Micrófono con Web Speech API
-let samRecognition = null;
+let samMediaRecorder = null;
+let samAudioChunks = [];
 let samGrabando = false;
 
-window.toggleMicSAM = function() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    alert('Tu browser no soporta reconocimiento de voz.');
-    return;
-  }
-
+window.toggleMicSAM = async function() {
   if (samGrabando) {
-    samRecognition && samRecognition.stop();
-    samGrabando = false;
-    document.getElementById('sam-mic-btn').classList.remove('grabando');
+    samMediaRecorder && samMediaRecorder.stop();
     return;
   }
-
-  // Crear nueva instancia cada vez (necesario en iOS)
-  samRecognition = new SR();
-  samRecognition.lang = 'es-AR';
-  samRecognition.continuous = false;
-  samRecognition.interimResults = false;
-  samRecognition.maxAlternatives = 1;
-
-  samRecognition.onstart = function() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm'
+      : MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/ogg';
+    samAudioChunks = [];
+    samMediaRecorder = new MediaRecorder(stream, { mimeType });
+    samMediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) samAudioChunks.push(e.data); };
+    samMediaRecorder.onstop = async () => {
+      samGrabando = false;
+      document.getElementById('sam-mic-btn').classList.remove('grabando');
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(samAudioChunks, { type: mimeType });
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result.split(',')[1];
+        const msgs = document.getElementById('sam-chat-messages');
+        const userDiv = document.createElement('div');
+        userDiv.className = 'sam-msg user';
+        userDiv.textContent = '🎙️ Audio enviado...';
+        msgs.appendChild(userDiv);
+        const loadDiv = document.createElement('div');
+        loadDiv.className = 'sam-msg bot loading';
+        loadDiv.textContent = 'Procesando audio...';
+        msgs.appendChild(loadDiv);
+        msgs.scrollTop = msgs.scrollHeight;
+        try {
+          const res = await fetch('https://vtyahpzfbtgcfubegxad.supabase.co/functions/v1/sam-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ audioBase64: base64, audioMime: mimeType, historial: samHistorial.slice(-10) })
+          });
+          const data = await res.json();
+          loadDiv.classList.remove('loading');
+          loadDiv.textContent = data.respuesta || data.error || 'Error al procesar.';
+          if (data.asistente) samHistorial.push(data.asistente);
+          if (data.resultados && data.resultados.length > 0) { await loadAll(); updateCounts(); render(); }
+        } catch(e) {
+          loadDiv.classList.remove('loading');
+          loadDiv.textContent = 'Error de conexión.';
+        }
+        msgs.scrollTop = msgs.scrollHeight;
+      };
+      reader.readAsDataURL(blob);
+    };
+    samMediaRecorder.start();
     samGrabando = true;
     document.getElementById('sam-mic-btn').classList.add('grabando');
-  };
-
-  samRecognition.onresult = function(e) {
-    const texto = e.results[e.results.length - 1][0].transcript;
-    document.getElementById('sam-chat-input').value = texto;
-  };
-
-  samRecognition.onend = function() {
-    samGrabando = false;
-    document.getElementById('sam-mic-btn').classList.remove('grabando');
-    const val = document.getElementById('sam-chat-input').value.trim();
-    if (val) setTimeout(()=>enviarSamChat(), 100);
-  };
-
-  samRecognition.onerror = function(e) {
-    samGrabando = false;
-    document.getElementById('sam-mic-btn').classList.remove('grabando');
-    if (e.error !== 'no-speech') console.log('Speech error:', e.error);
-  };
-
-  try {
-    samRecognition.start();
   } catch(e) {
-    console.log('Speech start error:', e);
+    alert('No se pudo acceder al micrófono: ' + e.message);
   }
 }
 
